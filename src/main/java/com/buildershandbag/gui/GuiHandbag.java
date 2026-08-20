@@ -96,6 +96,8 @@ public class GuiHandbag extends GuiContainer {
         ySize = GUI_HEIGHT;
     }
 
+    // FIXME: the tooltips do not have the first few lines in gray, like is done for vanilla
+
     @Override
     public void initGui() {
         super.initGui();
@@ -253,7 +255,7 @@ public class GuiHandbag extends GuiContainer {
             int pageTextWidth = fontRenderer.getStringWidth(pageText);
             int pageTextX = OPTION_X + (OPTION_COLUMNS * SLOT_SIZE - pageTextWidth) / 2;
             int pageTextY = PAGE_Y + (PAGE_HEIGHT - fontRenderer.FONT_HEIGHT) / 2;
-            drawString(fontRenderer, pageText, pageTextX, pageTextY, 0xFF000000);
+            fontRenderer.drawString(pageText, pageTextX, pageTextY, 0xFF000000);
         }
     }
 

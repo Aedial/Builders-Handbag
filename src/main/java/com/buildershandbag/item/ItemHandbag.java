@@ -11,7 +11,6 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -20,7 +19,6 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
@@ -34,7 +32,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
 import com.buildershandbag.Handbag;
-import com.buildershandbag.Tags;
+import com.buildershandbag.block.BlockHandbag;
 import com.buildershandbag.config.HandbagServerConfig;
 import com.buildershandbag.container.GuiHandler;
 import com.buildershandbag.integration.Ae2Integration;
@@ -51,20 +49,21 @@ import com.buildershandbag.storage.HandbagStorage;
  * Handheld decoration placer. A selected configuration is placed through its
  * own ItemBlock implementation, so addon placement behaviour remains intact.
  */
-public class ItemHandbag extends Item {
+public class ItemHandbag extends ItemBlock {
 
     private static final String AE2_MODID = "appliedenergistics2";
     private static final String BLOCKCRAFTERY_MODID = "blockcraftery";
 
-    public ItemHandbag() {
-        setRegistryName(new ResourceLocation(Tags.MODID, "handbag"));
-        setTranslationKey(Tags.MODID + ".handbag");
+    public ItemHandbag(BlockHandbag block) {
+        super(block);
+        setRegistryName(block.getRegistryName());
+        setTranslationKey(block.getTranslationKey());
         setMaxStackSize(1);
         setCreativeTab(CreativeTabs.TOOLS);
     }
 
     @Override
-    public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable NBTTagCompound nbt) {
+    public ICapabilityProvider initCapabilities(@Nonnull ItemStack stack, @Nullable NBTTagCompound nbt) {
         return new ICapabilityProvider() {
 
             private final IItemHandler handler = new HandbagMaterialHandler(stack);
@@ -84,13 +83,13 @@ public class ItemHandbag extends Item {
         };
     }
 
-    // TODO: Need to figure how we place it on the floor.
+    // TODO: Need to figure how we place it on the floor, considering click is placing blocks.
     //       Maybe a keybind? That's kinda eh...
 
     @Override
     @Nonnull
-    public EnumActionResult onItemUseFirst(@Nonnull EntityPlayer player, World world, @Nonnull BlockPos pos,
-            @Nonnull EnumFacing side, float hitX, float hitY, float hitZ, @Nonnull EnumHand hand) {
+    public EnumActionResult onItemUseFirst(@Nonnull EntityPlayer player, @Nonnull World world, @Nonnull BlockPos pos,
+                                           @Nonnull EnumFacing side, float hitX, float hitY, float hitZ, @Nonnull EnumHand hand) {
         if (!player.isSneaking()) return EnumActionResult.PASS;
 
         openHandbag(player, world, hand);
@@ -99,8 +98,8 @@ public class ItemHandbag extends Item {
 
     @Override
     @Nonnull
-    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing side,
-            float hitX, float hitY, float hitZ) {
+    public EnumActionResult onItemUse(EntityPlayer player, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull EnumHand hand, @Nonnull EnumFacing side,
+                                      float hitX, float hitY, float hitZ) {
         if (player.isSneaking()) {
             openHandbag(player, world, hand);
             return EnumActionResult.SUCCESS;
@@ -112,7 +111,7 @@ public class ItemHandbag extends Item {
 
     @Override
     @Nonnull
-    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, @Nonnull EnumHand hand) {
+    public ActionResult<ItemStack> onItemRightClick(@Nonnull World world, EntityPlayer player, @Nonnull EnumHand hand) {
         ItemStack handbag = player.getHeldItem(hand);
         openHandbag(player, world, hand);
         return new ActionResult<>(EnumActionResult.SUCCESS, handbag);
@@ -130,8 +129,7 @@ public class ItemHandbag extends Item {
         int selected = HandbagStorage.getSelected(handbag);
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, selected);
         if (configuration == null) {
-            HandbagMessages.error(player, "message.buildershandbag.no_selection");
-            return EnumActionResult.FAIL;
+            return super.onItemUse(player, world, clickedPos, hand, side, hitX, hitY, hitZ);
         }
 
         ItemStack resultStack = configuration.getResult();
@@ -254,6 +252,8 @@ public class ItemHandbag extends Item {
     @SideOnly(Side.CLIENT)
     public void addInformation(@Nonnull ItemStack stack, @Nullable World world, @Nonnull List<String> tooltip,
             @Nonnull ITooltipFlag flag) {
+        // TODO: Add better info on what the item does, and how to use it.
+
         List<HandbagConfiguration> configurations = HandbagStorage.getConfigurations(stack);
         int selected = HandbagStorage.getSelected(stack);
 

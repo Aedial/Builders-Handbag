@@ -11,6 +11,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import com.buildershandbag.Tags;
+import com.buildershandbag.block.BlockRegistry;
 
 
 /**
@@ -19,13 +20,12 @@ import com.buildershandbag.Tags;
 @Mod.EventBusSubscriber(modid = Tags.MODID)
 public final class ItemRegistry {
 
-    public static ItemHandbag HANDBAG;
+    public static final ItemHandbag HANDBAG = new ItemHandbag(BlockRegistry.HANDBAG);
 
     private ItemRegistry() {
     }
 
     public static void init() {
-        HANDBAG = new ItemHandbag();
     }
 
     @SubscribeEvent

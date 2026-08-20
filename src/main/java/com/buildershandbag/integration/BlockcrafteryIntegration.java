@@ -29,11 +29,7 @@ public final class BlockcrafteryIntegration {
             if (!(block instanceof IEditableBlock)) continue;
 
             Item item = Item.getItemFromBlock(block);
-            if (item != null) {
-                HandbagConfigurationProvider.addOption(
-                    options,
-                    new HandbagConfigurationOption(new ItemStack(item), HandbagIntegration.BLOCKCRAFTERY));
-            }
+            HandbagConfigurationProvider.addOption(options, new HandbagConfigurationOption(new ItemStack(item), HandbagIntegration.BLOCKCRAFTERY));
         }
     }
 
@@ -57,6 +53,8 @@ public final class BlockcrafteryIntegration {
         player.setHeldItem(EnumHand.MAIN_HAND, temporaryMaterial);
 
         try {
+            // FIXME: The frame sometimes stays stale (only frame) until a neighbor update occurs
+            //        It renders correctly after update, so no idea why it doesn't refresh immediately
             boolean configured = ((TileEditableBlock) tile).activate(
                 world, position, world.getBlockState(position),
                 player, EnumHand.MAIN_HAND, side,

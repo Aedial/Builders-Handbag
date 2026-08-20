@@ -15,3 +15,4 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
     - Per-configuration material storage, with automatic refilling from the player's inventory / wireless AE2 if linked.
     - Sneak-scroll configuration switching and in-screen configuration management.
     - Optional Chisel, ArchitectureCraft, and Blockcraftery decoration support.
+    - Texture provided by a TESR model, with the selected configuration rendered in the model.

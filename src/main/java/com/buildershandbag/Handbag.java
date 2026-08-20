@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import com.buildershandbag.container.GuiHandler;
+import com.buildershandbag.block.BlockRegistry;
 import com.buildershandbag.item.ItemRegistry;
 import com.buildershandbag.network.HandbagNetwork;
 
@@ -35,6 +36,7 @@ public class Handbag {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        BlockRegistry.init();
         ItemRegistry.init();
         HandbagNetwork.init();
         proxy.preInit(event);
