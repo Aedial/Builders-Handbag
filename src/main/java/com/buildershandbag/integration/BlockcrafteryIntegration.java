@@ -16,6 +16,9 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import epicsquid.blockcraftery.block.IEditableBlock;
 import epicsquid.blockcraftery.tile.TileEditableBlock;
 
+import com.buildershandbag.network.HandbagNetwork;
+
+
 /**
  * Blockcraftery editable-block integration.
  */
@@ -34,10 +37,10 @@ public final class BlockcrafteryIntegration {
     }
 
     /**
-     * Configures the Blockcraftery editable block placed for the selected result.
+     * Configures the BlockCraftery editable block placed for the selected result.
      * <p>
-     * The placed result is the editable block itself, so the player neither
-     * supplies nor consumes a separate Blockcraftery frame item. This can fail
+     * The placed result is the editable block itself, so the player does not
+     * need to supply a separate BlockCraftery frame item. This can fail
      * if the API rejects the configuration or the player is out of range.
      *
      * @return true if the configuration was successful, false otherwise
@@ -53,12 +56,13 @@ public final class BlockcrafteryIntegration {
         player.setHeldItem(EnumHand.MAIN_HAND, temporaryMaterial);
 
         try {
-            // FIXME: The frame sometimes stays stale (only frame) until a neighbor update occurs
-            //        It renders correctly after update, so no idea why it doesn't refresh immediately
             boolean configured = ((TileEditableBlock) tile).activate(
                 world, position, world.getBlockState(position),
                 player, EnumHand.MAIN_HAND, side,
                 hitX, hitY, hitZ);
+
+            // BlockCraftery may not automatically sync the tile entity to the client
+            if (configured) HandbagNetwork.syncBlockcrafteryTile(world, position, tile);
 
             // Clean the previously placed frame if the configuration failed.
             // Can't leave frames behind like a bad guest at a party.
