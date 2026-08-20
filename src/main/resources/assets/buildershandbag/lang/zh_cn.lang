@@ -22,7 +22,7 @@ buildershandbag.config.server.integrations.ae2_refill.tooltip=如果网络中存
 
 # Tooltips
 tooltip.buildershandbag.configurations=配置：%s/%s
-tooltip.buildershandbag.selected=已选择：%s（%s stored）
+tooltip.buildershandbag.selected=当前选择：%s（%s 储量）
 tooltip.buildershandbag.no_selection=未选择配置
 tooltip.buildershandbag.open=右键点击以配置
 tooltip.buildershandbag.scroll=持有时，潜行滚动滚轮以切换配置
