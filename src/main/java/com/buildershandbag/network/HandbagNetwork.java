@@ -19,13 +19,13 @@ import com.buildershandbag.Tags;
 
 /**
  * Network registration for Handbag actions, container state, and deferred
- * Blockcraftery render synchronization.
+ * placed-tile render synchronization.
  */
 @Mod.EventBusSubscriber(modid = Tags.MODID)
 public final class HandbagNetwork {
 
     public static SimpleNetworkWrapper INSTANCE;
-    private static final List<BlockcrafteryTileSync> PENDING_BLOCKCRAFTERY_TILE_SYNCS = new ArrayList<>();
+    private static final List<PendingTileSync> PENDING_TILE_SYNCS = new ArrayList<>();
 
     private HandbagNetwork() {
     }
@@ -50,18 +50,18 @@ public final class HandbagNetwork {
         // Client -> server: cycles the selected configuration for sneak-scroll.
         INSTANCE.registerMessage(PacketCycleHandbagConfiguration.Handler.class, PacketCycleHandbagConfiguration.class, packetId++, Side.SERVER);
 
-        // Server -> client: applies Blockcraftery tile data and refreshes its rendered chunk.
-        INSTANCE.registerMessage(PacketBlockcrafteryTileSync.Handler.class, PacketBlockcrafteryTileSync.class, packetId++, Side.CLIENT);
+        // Server -> client: applies placed tile data and refreshes its rendered chunk.
+        INSTANCE.registerMessage(PacketBlockTileSync.Handler.class, PacketBlockTileSync.class, packetId++, Side.CLIENT);
     }
 
     /**
      * Defers the render sync until the end of this server tick, after vanilla has sent
-     * the frame placement to every client tracking this position.
+     * the placed block state to nearby clients.
      */
-    public static void syncBlockcrafteryTile(World world, BlockPos position, TileEntity tile) {
+    public static void syncPlacedTile(World world, BlockPos position, TileEntity tile) {
         if (world.isRemote) return;
 
-        PENDING_BLOCKCRAFTERY_TILE_SYNCS.add(new BlockcrafteryTileSync(
+        PENDING_TILE_SYNCS.add(new PendingTileSync(
             world,
             position.toImmutable(),
             tile,
@@ -70,13 +70,13 @@ public final class HandbagNetwork {
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || PENDING_BLOCKCRAFTERY_TILE_SYNCS.isEmpty()) return;
+        if (event.phase != TickEvent.Phase.END || PENDING_TILE_SYNCS.isEmpty()) return;
 
-        for (BlockcrafteryTileSync sync : PENDING_BLOCKCRAFTERY_TILE_SYNCS) {
+        for (PendingTileSync sync : PENDING_TILE_SYNCS) {
             if (sync.world.getTileEntity(sync.position) != sync.tile) continue;
 
             INSTANCE.sendToAllTracking(
-                new PacketBlockcrafteryTileSync(sync.position, sync.data),
+                new PacketBlockTileSync(sync.position, sync.data),
                 new NetworkRegistry.TargetPoint(
                     sync.world.provider.getDimension(),
                     sync.position.getX() + 0.5D,
@@ -84,17 +84,17 @@ public final class HandbagNetwork {
                     sync.position.getZ() + 0.5D,
                     0.0D));
         }
-        PENDING_BLOCKCRAFTERY_TILE_SYNCS.clear();
+        PENDING_TILE_SYNCS.clear();
     }
 
-    private static final class BlockcrafteryTileSync {
+    private static final class PendingTileSync {
 
         private final World world;
         private final BlockPos position;
         private final TileEntity tile;
         private final NBTTagCompound data;
 
-        private BlockcrafteryTileSync(World world, BlockPos position, TileEntity tile, NBTTagCompound data) {
+        private PendingTileSync(World world, BlockPos position, TileEntity tile, NBTTagCompound data) {
             this.world = world;
             this.position = position;
             this.tile = tile;

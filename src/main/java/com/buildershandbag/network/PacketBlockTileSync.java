@@ -16,21 +16,21 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 
 /**
- * Applies the finalized BlockCraftery tile data, then schedules its chunk for
- * rebuilding. This is kept dependency-free so the packet doesn't crash
- * when BlockCraftery is not present.
+ * Applies the finalized tile data, then schedules its chunk for rebuilding.
+ * This is kept dependency-free so any integration can use it for forcing
+ * a render update after placing a block with a tile entity.
  */
-public class PacketBlockcrafteryTileSync implements IMessage {
+public class PacketBlockTileSync implements IMessage {
 
     private BlockPos position;
     private NBTTagCompound data;
 
-    public PacketBlockcrafteryTileSync() {
+    public PacketBlockTileSync() {
         position = BlockPos.ORIGIN;
         data = new NBTTagCompound();
     }
 
-    public PacketBlockcrafteryTileSync(BlockPos position, NBTTagCompound data) {
+    public PacketBlockTileSync(BlockPos position, NBTTagCompound data) {
         this.position = position.toImmutable();
         this.data = data == null ? new NBTTagCompound() : data.copy();
     }
@@ -48,17 +48,17 @@ public class PacketBlockcrafteryTileSync implements IMessage {
         ByteBufUtils.writeTag(buffer, data);
     }
 
-    public static class Handler implements IMessageHandler<PacketBlockcrafteryTileSync, IMessage> {
+    public static class Handler implements IMessageHandler<PacketBlockTileSync, IMessage> {
 
         @Override
         @SideOnly(Side.CLIENT)
-        public IMessage onMessage(PacketBlockcrafteryTileSync message, MessageContext context) {
+        public IMessage onMessage(PacketBlockTileSync message, MessageContext context) {
             Minecraft.getMinecraft().addScheduledTask(() -> apply(message));
             return null;
         }
 
         @SideOnly(Side.CLIENT)
-        private static void apply(PacketBlockcrafteryTileSync message) {
+        private static void apply(PacketBlockTileSync message) {
             World world = Minecraft.getMinecraft().world;
             if (world == null || !world.isBlockLoaded(message.position)) return;
 

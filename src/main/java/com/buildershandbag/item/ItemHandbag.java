@@ -14,6 +14,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
@@ -166,6 +167,12 @@ public class ItemHandbag extends ItemBlock {
             EnumActionResult result = resultStack.getItem().onItemUse(player, world, clickedPos, hand, side, hitX, hitY, hitZ);
             if (result != EnumActionResult.SUCCESS) return result;
 
+            // ArchitectureCraft fills the placed tile from stack NBT after placement,
+            // so the client needs a deferred tile sync for it to render correctly
+            if (configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT) {
+                syncArchitectureCraftTile(world, placementPos);
+            }
+
             if (configuration.getIntegration() == HandbagIntegration.BLOCKCRAFTERY
                     && (!HandbagIntegration.BLOCKCRAFTERY.isModLoaded() || !configureBlockcraftery(
                         world, placementPos, player,
@@ -179,6 +186,13 @@ public class ItemHandbag extends ItemBlock {
         } finally {
             player.setHeldItem(hand, handbag);
         }
+    }
+
+    private void syncArchitectureCraftTile(World world, BlockPos position) {
+        TileEntity tile = world.getTileEntity(position);
+        if (tile == null) return;
+
+        HandbagNetwork.syncPlacedTile(world, position, tile);
     }
 
     /**
@@ -237,6 +251,12 @@ public class ItemHandbag extends ItemBlock {
         return Ae2Integration.refill(player, handbag, material, requestedAmount);
     }
 
+    @Optional.Method(modid = AE2_MODID)
+    @SideOnly(Side.CLIENT)
+    private void addAe2Tooltip(ItemStack stack, List<String> tooltip) {
+        Ae2Integration.addTooltip(stack, tooltip);
+    }
+
     public static void syncToClient(EntityPlayerMP player, EnumHand hand) {
         ItemStack handbag = player.getHeldItem(hand);
         if (handbag.getItem() != ItemRegistry.HANDBAG) return;
@@ -257,6 +277,9 @@ public class ItemHandbag extends ItemBlock {
             .reduce((a, b) -> a + " / " + b)
             .orElse(I18n.format("tooltip.buildershandbag.no_integrations"));
         tooltip.add(I18n.format("tooltip.buildershandbag.tooltip", integrationNames));
+
+        if (Loader.isModLoaded(AE2_MODID)) addAe2Tooltip(stack, tooltip);
+
         tooltip.add("");
 
         List<HandbagConfiguration> configurations = HandbagStorage.getConfigurations(stack);

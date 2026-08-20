@@ -34,6 +34,7 @@ buildershandbag.config.server.integrations.ae2_refill.tooltip=Refill an empty se
 
 # Tooltips
 tooltip.buildershandbag.tooltip=§bAllows you to store and select multiple configurations for decorative blocks. Supports %s
+tooltip.buildershandbag.ae2_disabled=§7AE2 refilling disabled
 tooltip.buildershandbag.no_integrations=§cno integrations. §eMake sure the compatible mods are installed and enabled in config.
 tooltip.buildershandbag.no_configurations=§eNo configurations stored. §bRight-click§e/§bShift + Right-click§e to add one
 tooltip.buildershandbag.configurations=Configurations: §a%s/%s

@@ -62,7 +62,7 @@ public final class BlockcrafteryIntegration {
                 hitX, hitY, hitZ);
 
             // BlockCraftery may not automatically sync the tile entity to the client
-            if (configured) HandbagNetwork.syncBlockcrafteryTile(world, position, tile);
+            if (configured) HandbagNetwork.syncPlacedTile(world, position, tile);
 
             // Clean the previously placed frame if the configuration failed.
             // Can't leave frames behind like a bad guest at a party.

@@ -8,6 +8,12 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
+## [1.0.1] - 2026-08-20
+### Fixed
+- Fix the "Linked"/"Unlinked" tooltip text for AE2 integration not being there.
+- Fix ArchitectureCraft sometimes not rendering correctly after placement (rendering as a default wooden slope) until a neighbor update occurs.
+
+
 ## [1.0.0] - 2026-08-19
 ### Added
 - Initial release of Builder's Handbag :
