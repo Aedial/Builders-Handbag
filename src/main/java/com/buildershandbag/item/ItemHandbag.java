@@ -20,7 +20,6 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -52,7 +51,6 @@ import com.buildershandbag.storage.HandbagStorage;
 public class ItemHandbag extends ItemBlock {
 
     private static final String AE2_MODID = "appliedenergistics2";
-    private static final String BLOCKCRAFTERY_MODID = "blockcraftery";
 
     public ItemHandbag(BlockHandbag block) {
         super(block);
@@ -169,7 +167,7 @@ public class ItemHandbag extends ItemBlock {
             if (result != EnumActionResult.SUCCESS) return result;
 
             if (configuration.getIntegration() == HandbagIntegration.BLOCKCRAFTERY
-                    && (!Loader.isModLoaded(BLOCKCRAFTERY_MODID) || !configureBlockcraftery(
+                    && (!HandbagIntegration.BLOCKCRAFTERY.isModLoaded() || !configureBlockcraftery(
                         world, placementPos, player,
                         side, hitX, hitY, hitZ,
                         configuration.getMaterial()))) {
@@ -228,7 +226,7 @@ public class ItemHandbag extends ItemBlock {
         return block.isReplaceable(world, clickedPos) ? clickedPos : clickedPos.offset(side);
     }
 
-    @Optional.Method(modid = BLOCKCRAFTERY_MODID)
+    @Optional.Method(modid = HandbagIntegration.BLOCKCRAFTERY_MODID)
     private boolean configureBlockcraftery(World world, BlockPos position, EntityPlayer player, EnumFacing side,
             float hitX, float hitY, float hitZ, ItemStack material) {
         return BlockcrafteryIntegration.configure(world, position, player, side, hitX, hitY, hitZ, material);
@@ -252,14 +250,25 @@ public class ItemHandbag extends ItemBlock {
     @SideOnly(Side.CLIENT)
     public void addInformation(@Nonnull ItemStack stack, @Nullable World world, @Nonnull List<String> tooltip,
             @Nonnull ITooltipFlag flag) {
-        // TODO: Add better info on what the item does, and how to use it.
+
+        List<HandbagIntegration> integrations = HandbagServerConfig.integrations.getEnabledIntegrations();
+        String integrationNames = integrations.stream()
+            .map(HandbagIntegration::getTranslatedName)
+            .reduce((a, b) -> a + " / " + b)
+            .orElse(I18n.format("tooltip.buildershandbag.no_integrations"));
+        tooltip.add(I18n.format("tooltip.buildershandbag.tooltip", integrationNames));
+        tooltip.add("");
 
         List<HandbagConfiguration> configurations = HandbagStorage.getConfigurations(stack);
-        int selected = HandbagStorage.getSelected(stack);
+        if (configurations.isEmpty()) {
+            tooltip.add(I18n.format("tooltip.buildershandbag.no_configurations"));
+            return;
+        }
 
         tooltip.add(I18n.format("tooltip.buildershandbag.configurations",
             configurations.size(), HandbagStorage.CONFIGURATION_COUNT));
 
+        int selected = HandbagStorage.getSelected(stack);
         if (selected >= 0) {
             HandbagConfiguration configuration = configurations.get(selected);
             tooltip.add(I18n.format(
@@ -267,11 +276,8 @@ public class ItemHandbag extends ItemBlock {
                 configuration.getResult().getDisplayName(),
                 configuration.getMaterialCount()));
         } else {
-            tooltip.add(TextFormatting.GRAY + I18n.format("tooltip.buildershandbag.no_selection"));
+            // may not have selected on first configuration
+            tooltip.add(I18n.format("tooltip.buildershandbag.no_selection"));
         }
-
-        tooltip.add("");
-        tooltip.add(TextFormatting.AQUA + I18n.format("tooltip.buildershandbag.open"));
-        tooltip.add(TextFormatting.DARK_GRAY + I18n.format("tooltip.buildershandbag.scroll"));
     }
 }

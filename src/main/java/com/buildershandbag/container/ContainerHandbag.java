@@ -17,7 +17,6 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 
-
 import com.buildershandbag.integration.HandbagConfigurationOption;
 import com.buildershandbag.integration.HandbagConfigurationProvider;
 import com.buildershandbag.item.ItemRegistry;

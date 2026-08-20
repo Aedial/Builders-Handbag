@@ -16,7 +16,7 @@ import com.buildershandbag.integration.HandbagIntegration;
 
 
 /**
- * NBT-backed, ordered configuration storage for one handbag stack.
+ * Configuration storage for the handbag item. The storage is serialized to the NBT of the ItemStack.
  */
 public final class HandbagStorage {
 
@@ -189,6 +189,9 @@ public final class HandbagStorage {
         ItemStack result = new ItemStack(serialized.getCompoundTag(NBT_RESULT));
         HandbagIntegration integration = HandbagIntegration.fromOrdinal(serialized.getByte(NBT_INTEGRATION));
         if (material.isEmpty() || result.isEmpty() || integration == null) return null;
+
+        // TODO: Do we disable configurations that are disabled in config?
+        //       They are supposed to not be "valid"
 
         return new HandbagConfiguration(
             material,

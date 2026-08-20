@@ -1,5 +1,8 @@
 package com.buildershandbag.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
@@ -7,6 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import com.buildershandbag.Tags;
+import com.buildershandbag.integration.HandbagIntegration;
 
 
 /**
@@ -42,6 +46,31 @@ public final class HandbagServerConfig {
         @Config.Comment("Refill an empty selected configuration through its AE2 link, if available")
         @Config.LangKey(INTEGRATIONS_PREFIX + ".ae2_refill")
         public boolean enableAe2Refill = true;
+
+
+        public boolean isIntegrationEnabled(HandbagIntegration integration) {
+            if (!integration.isModLoaded()) return false;
+
+            switch (integration) {
+                case CHISEL:
+                    return enableChisel;
+                case ARCHITECTURECRAFT:
+                    return enableArchitectureCraft;
+                case BLOCKCRAFTERY:
+                    return enableBlockcraftery;
+                default:
+                    return false;
+            }
+        }
+
+        public List<HandbagIntegration> getEnabledIntegrations() {
+            List<HandbagIntegration> enabledIntegrations = new ArrayList<>();
+            for (HandbagIntegration integration : HandbagIntegration.values()) {
+                if (isIntegrationEnabled(integration)) enabledIntegrations.add(integration);
+            }
+
+            return enabledIntegrations;
+        }
     }
 
     @Mod.EventBusSubscriber(modid = Tags.MODID)

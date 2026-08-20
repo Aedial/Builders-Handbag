@@ -1,12 +1,12 @@
 package com.buildershandbag.item;
 
+import javax.annotation.Nonnull;
+
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
 import com.buildershandbag.storage.HandbagConfiguration;
 import com.buildershandbag.storage.HandbagStorage;
-
-import javax.annotation.Nonnull;
 
 
 /**
@@ -60,7 +60,7 @@ public final class HandbagMaterialHandler implements IItemHandler {
     public int getSlotLimit(int slot) {
         // TODO: Make the limit configurable?
         //       Maybe multiple tiers of handbags with different capacities?
-        //       Should only really matter if the player has no AE2 compat.
+        //       Should only really matter if the player has no AE2 access.
         return HandbagStorage.MATERIAL_CAPACITY;
     }
 }

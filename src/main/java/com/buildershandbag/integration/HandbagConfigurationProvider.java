@@ -6,10 +6,11 @@ import java.util.List;
 
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Optional;
 
 import com.buildershandbag.config.HandbagServerConfig;
+import com.buildershandbag.item.ItemHandbag;
+
 
 /**
  * Builds the configuration options for a material block.
@@ -19,10 +20,6 @@ import com.buildershandbag.config.HandbagServerConfig;
  */
 public final class HandbagConfigurationProvider {
 
-    private static final String CHISEL_MODID = "chisel";
-    private static final String ARCHITECTURECRAFT_MODID = "architecturecraft";
-    private static final String BLOCKCRAFTERY_MODID = "blockcraftery";
-
     private HandbagConfigurationProvider() {
     }
 
@@ -31,13 +28,13 @@ public final class HandbagConfigurationProvider {
 
         // TODO: maybe make the order configurable?
         List<HandbagConfigurationOption> options = new ArrayList<>();
-        if (HandbagServerConfig.integrations.enableChisel && Loader.isModLoaded(CHISEL_MODID)) {
+        if (HandbagServerConfig.integrations.isIntegrationEnabled(HandbagIntegration.CHISEL)) {
             addChiselOptions(material, options);
         }
-        if (HandbagServerConfig.integrations.enableArchitectureCraft && Loader.isModLoaded(ARCHITECTURECRAFT_MODID)) {
+        if (HandbagServerConfig.integrations.isIntegrationEnabled(HandbagIntegration.ARCHITECTURECRAFT)) {
             addArchitectureCraftOptions(material, options);
         }
-        if (HandbagServerConfig.integrations.enableBlockcraftery && Loader.isModLoaded(BLOCKCRAFTERY_MODID)) {
+        if (HandbagServerConfig.integrations.isIntegrationEnabled(HandbagIntegration.BLOCKCRAFTERY)) {
             addBlockcrafteryOptions(options);
         }
 
@@ -45,29 +42,21 @@ public final class HandbagConfigurationProvider {
     }
 
     public static boolean isConfigurationMaterial(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() instanceof ItemBlock;
+        return !stack.isEmpty() && stack.getItem() instanceof ItemBlock
+                && !(stack.getItem() instanceof ItemHandbag);
     }
 
-    /**
-     * Defers resolving the Chisel-only implementation until Chisel is loaded.
-     */
-    @Optional.Method(modid = CHISEL_MODID)
+    @Optional.Method(modid = HandbagIntegration.CHISEL_MODID)
     private static void addChiselOptions(ItemStack material, List<HandbagConfigurationOption> options) {
         ChiselIntegration.addOptions(material, options);
     }
 
-    /**
-     * Defers resolving the ArchitectureCraft-only implementation until it is loaded.
-     */
-    @Optional.Method(modid = ARCHITECTURECRAFT_MODID)
+    @Optional.Method(modid = HandbagIntegration.ARCHITECTURECRAFT_MODID)
     private static void addArchitectureCraftOptions(ItemStack material, List<HandbagConfigurationOption> options) {
         ArchitectureCraftIntegration.addOptions(material, options);
     }
 
-    /**
-     * Defers resolving the Blockcraftery-only implementation until it is loaded.
-     */
-    @Optional.Method(modid = BLOCKCRAFTERY_MODID)
+    @Optional.Method(modid = HandbagIntegration.BLOCKCRAFTERY_MODID)
     private static void addBlockcrafteryOptions(List<HandbagConfigurationOption> options) {
         BlockcrafteryIntegration.addOptions(options);
     }

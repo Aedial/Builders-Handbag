@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 
 import com.elytradev.architecture.common.shape.EnumShape;
 
+
 /**
  * ArchitectureCraft shape integration.
  */
@@ -15,6 +16,10 @@ final class ArchitectureCraftIntegration {
 
     private ArchitectureCraftIntegration() {
     }
+
+    // FIXME: *Sigh* ArchitectureCraft seems to be suffering from the same problem as BlockCraftery :
+    //        the rendering may be stale until neighbor updates occur.
+    //        Need the same workaround (PacketBlockcrafteryTileSync packet after placing)
 
     // TODO: If there is demand, we might consider fractional material cost
     //       (aligning with ArchitectureCraft's own cost calculations),

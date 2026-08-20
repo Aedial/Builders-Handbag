@@ -8,6 +8,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -27,7 +29,6 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -39,8 +40,6 @@ import com.buildershandbag.storage.HandbagConfiguration;
 import com.buildershandbag.storage.HandbagStorage;
 import com.buildershandbag.tile.TileHandbag;
 
-import javax.annotation.Nonnull;
-
 
 /**
  * Renders the placed handbag as a one-pixel wire-frame cube around a rotating
@@ -49,8 +48,6 @@ import javax.annotation.Nonnull;
  */
 @SideOnly(Side.CLIENT)
 public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
-
-    private static final String BLOCKCRAFTERY_MODID = "blockcraftery";
 
     private static final ResourceLocation FRAME_TEXTURE = new ResourceLocation(Tags.MODID,
         "textures/blocks/frame.png");
@@ -226,14 +223,14 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
 
     private boolean renderBlockcrafteryConfiguration(HandbagConfiguration configuration) {
         if (configuration.getIntegration() != HandbagIntegration.BLOCKCRAFTERY
-                || !Loader.isModLoaded(BLOCKCRAFTERY_MODID)) {
+                || !HandbagIntegration.BLOCKCRAFTERY.isModLoaded()) {
             return false;
         }
 
         return renderBlockcrafteryConfiguration(configuration.getResult(), configuration.getMaterial());
     }
 
-    @Optional.Method(modid = BLOCKCRAFTERY_MODID)
+    @Optional.Method(modid = HandbagIntegration.BLOCKCRAFTERY_MODID)
     private boolean renderBlockcrafteryConfiguration(ItemStack frame, ItemStack material) {
         RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
         BlockcrafteryPreviewModel.Preview preview = BlockcrafteryPreviewModel.create(itemRenderer, frame, material);

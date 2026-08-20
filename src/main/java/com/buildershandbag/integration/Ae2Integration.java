@@ -56,11 +56,7 @@ public final class Ae2Integration implements IWirelessTermHandler {
 
         IMEMonitor<IAEItemStack> monitor = wireless.getInventory(
             AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class));
-        if (monitor == null) {
-            return 0;
-        } else {
-            wireless.getActionableNode().getGrid();
-        }
+        if (monitor == null) return 0;
 
         IAEItemStack request = AEItemStack.fromItemStack(material.copy());
         if (request == null) return 0;
