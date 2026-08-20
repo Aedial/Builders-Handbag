@@ -128,7 +128,11 @@ public class ItemHandbag extends ItemBlock {
         int selected = HandbagStorage.getSelected(handbag);
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, selected);
         if (configuration == null) {
-            return super.onItemUse(player, world, clickedPos, hand, side, hitX, hitY, hitZ);
+                String messageKey = HandbagStorage.getConfigurations(handbag).isEmpty()
+                    ? "message.buildershandbag.no_configuration"
+                    : "message.buildershandbag.no_selection";
+                HandbagMessages.error(player, messageKey);
+                return EnumActionResult.FAIL;
         }
 
         ItemStack resultStack = configuration.getResult();

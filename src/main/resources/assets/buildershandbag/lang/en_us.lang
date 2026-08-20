@@ -42,6 +42,7 @@ tooltip.buildershandbag.selected=Selected: §b%s§7 (§a%s§7 stored). §bRight-
 tooltip.buildershandbag.no_selection=§eNo configuration selected. §bSneak-scroll§e to select one
 
 # Messages
+message.buildershandbag.no_configuration=This handbag has no stored configurations
 message.buildershandbag.no_selection=Select a handbag configuration first
 message.buildershandbag.invalid_configuration=That handbag configuration is no longer valid
 message.buildershandbag.no_material=Configured material ran out and could not be refilled
