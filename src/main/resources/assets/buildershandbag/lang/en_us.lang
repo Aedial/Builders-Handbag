@@ -1,0 +1,53 @@
+# Misc
+item.buildershandbag.handbag.name=Builder's Handbag
+tile.buildershandbag.handbag.name=Builder's Handbag
+
+# Config
+buildershandbag.config.client=Client
+buildershandbag.config.client.rendering=Rendering
+buildershandbag.config.client.rendering.core_scale=Core scale
+buildershandbag.config.client.rendering.core_scale.tooltip=Uniform scale of the rotating handbag core. 0.875 (14/16) fills the 14x14x14 space enclosed by the frame.
+
+buildershandbag.config.server=Server
+buildershandbag.config.server.integrations=Integrations
+buildershandbag.config.server.integrations.tooltip=Enable or disable integrations with other mods
+buildershandbag.config.server.integrations.chisel=Chisel
+buildershandbag.config.server.integrations.chisel.tooltip=Allow the use of Chisel blocks as decoration options in handbag configurations
+buildershandbag.config.server.integrations.architecturecraft=ArchitectureCraft
+buildershandbag.config.server.integrations.architecturecraft.tooltip=Allow the use of ArchitectureCraft blocks as decoration options in handbag configurations
+buildershandbag.config.server.integrations.blockcraftery=Blockcraftery
+buildershandbag.config.server.integrations.blockcraftery.tooltip=Allow the use of Blockcraftery blocks as decoration options in handbag configurations
+buildershandbag.config.server.integrations.ae2_refill=AE2 Refilling
+buildershandbag.config.server.integrations.ae2_refill.tooltip=Refill an empty selected configuration through its AE2 link, if available
+
+# Tooltips
+tooltip.buildershandbag.configurations=Configurations: %s/%s
+tooltip.buildershandbag.selected=Selected: %s (%s stored)
+tooltip.buildershandbag.no_selection=No configuration selected
+tooltip.buildershandbag.open=Right-click to configure
+tooltip.buildershandbag.scroll=Sneak-scroll while held to cycle configurations
+
+# Messages
+message.buildershandbag.no_selection=Select a handbag configuration first.
+message.buildershandbag.invalid_configuration=That handbag configuration is no longer valid.
+message.buildershandbag.no_material=No matching material is stored, available in AE2, or in your inventory.
+message.buildershandbag.blockcraftery_failed=The Blockcraftery block could not be configured.
+message.buildershandbag.full=No free configuration slots.
+message.buildershandbag.invalid_option=That decoration option is no longer available.
+message.buildershandbag.added=Configuration added.
+
+# GUI
+gui.buildershandbag.page.previous=Previous configuration page
+gui.buildershandbag.page.next=Next configuration page
+gui.buildershandbag.configuration.stored=Stored: %s x %s
+gui.buildershandbag.configuration.select=Left click: select for moving
+gui.buildershandbag.configuration.deselect=Left click: deselect
+gui.buildershandbag.configuration.remove=Right click: remove and return stored blocks
+gui.buildershandbag.configuration.move=Arrow keys: move in the list
+gui.buildershandbag.configuration.move_edge=Home/PgUp: first; End/PgDn: last
+gui.buildershandbag.option.add=Left click: add this configuration
+gui.buildershandbag.material.title=Configuration material
+gui.buildershandbag.material.slot=Configuration material slot
+gui.buildershandbag.material.description=Place a block here to list its decoration options.
+gui.buildershandbag.material.shift_click=Shift-click a block to insert it into the configuration material slot.
+gui.buildershandbag.material.shift_click_block=Shift-click the block to insert it into the configuration material slot.

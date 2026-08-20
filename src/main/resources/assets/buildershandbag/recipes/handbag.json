@@ -1,0 +1,28 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "LSL",
+        "TCT",
+        "LIL"
+    ],
+    "key": {
+        "L": {
+            "item": "minecraft:leather"
+        },
+        "S": {
+            "item": "minecraft:string"
+        },
+        "C": {
+            "item": "minecraft:chest"
+        },
+        "T": {
+            "item": "minecraft:crafting_table"
+        },
+        "I": {
+            "item": "minecraft:iron_ingot"
+        }
+    },
+    "result": {
+        "item": "buildershandbag:handbag"
+    }
+}
