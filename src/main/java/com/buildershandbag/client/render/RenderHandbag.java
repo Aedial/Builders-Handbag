@@ -3,7 +3,10 @@ package com.buildershandbag.client.render;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -49,21 +52,26 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
 
     private static final String BLOCKCRAFTERY_MODID = "blockcraftery";
 
-    private static final ResourceLocation FRAME_TEXTURE = new ResourceLocation(
-        Tags.MODID, "textures/blocks/frame.png");
+    private static final ResourceLocation FRAME_TEXTURE = new ResourceLocation(Tags.MODID,
+        "textures/blocks/frame.png");
 
+    /** Size of one pixel in block space */
     private static final double UNIT = 1.0D / 16.0D;
+    /** Size of the default core (corner-to-corner), in block space */
+    private static final double DEFAULT_CORE_SCALE = 14 * UNIT;
+    /** Minimum UV coordinates for the frame texture's outer ring */
     private static final double FRAME_EDGE_UV_MIN = 0.5D * UNIT;
+    /** Maximum UV coordinates for the frame texture's outer ring */
     private static final double FRAME_EDGE_UV_MAX = 15.5D * UNIT;
+    /** Cached buffer for cross products */
     private static final double[][] FRAME_STRUTS = createFrameStruts();
+    /** Cached buffer for the default icosidodecahedron core's faces */
     private static final List<double[][]> ICOSIDODECAHEDRON_FACES = createIcosidodecahedronFaces();
-
-    private static final float[] TURQUOISE_COLOR = new float[] {
-        64.0F / 255.0F,
-        224.0F / 255.0F,
-        208.0F / 255.0F,
-        132.0F / 255.0F
-    };
+    /** Cached buffer for the default icosidodecahedron core's edges */
+    private static final List<double[][]> ICOSIDODECAHEDRON_EDGES = createIcosidodecahedronEdges(
+        ICOSIDODECAHEDRON_FACES);
+    /** Scale factor between a block's side and its diagonal */
+    private static final float BLOCK_CORE_DIAGONAL_SCALE = (float) (1.0D / Math.sqrt(2.0D));
 
     @Override
     public void render(@Nonnull TileHandbag tile, double x, double y, double z, float partialTicks,
@@ -105,16 +113,20 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
 
     private void renderCore(TileHandbag tile, float partialTicks) {
         HandbagConfiguration configuration = getSelectedConfiguration(tile);
-        float ticks = getAnimationTicks(tile, partialTicks);
-        float scale = (float) HandbagClientConfig.rendering.coreScale;
 
         GlStateManager.pushMatrix();
         try {
             GlStateManager.translate(0.5D, 0.5D, 0.5D);
 
             // Wrap each axis independently so the slower Z spin stays continuous.
-            GlStateManager.rotate(wrapDegrees(ticks * 2.0F), 0.0F, 1.0F, 0.0F);
-            GlStateManager.rotate(wrapDegrees(ticks * 0.74F), 0.0F, 0.0F, 1.0F);
+            float speed = (float) HandbagClientConfig.rendering.coreRotationSpeed;
+            if (speed > 0.0F) {
+                float ticks = getAnimationTicks(tile, partialTicks);
+                GlStateManager.rotate(wrapDegrees( ticks * 2.0F * speed), 0.0F, 1.0F, 0.0F);
+                GlStateManager.rotate(wrapDegrees(ticks * 0.74F * speed), 0.0F, 0.0F, 1.0F);
+            }
+
+            float scale = (float) (HandbagClientConfig.rendering.coreScale * DEFAULT_CORE_SCALE);
             GlStateManager.scale(scale, scale, scale);
 
             if (configuration == null) {
@@ -156,14 +168,22 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
+        int faceColor = HandbagClientConfig.getCoreFaceColor();
+        int edgeColor = HandbagClientConfig.getCoreEdgeColor();
         buffer.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_COLOR);
         for (double[][] face : ICOSIDODECAHEDRON_FACES) {
             for (int index = 1; index < face.length - 1; index++) {
-                // TODO: add harsher edges? Maybe make them black or darker turquoise.
-                addColoredVertex(buffer, face[0], TURQUOISE_COLOR);
-                addColoredVertex(buffer, face[index], TURQUOISE_COLOR);
-                addColoredVertex(buffer, face[index + 1], TURQUOISE_COLOR);
+                addColoredVertex(buffer, face[0], faceColor);
+                addColoredVertex(buffer, face[index], faceColor);
+                addColoredVertex(buffer, face[index + 1], faceColor);
             }
+        }
+        tessellator.draw();
+
+        buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+        for (double[][] edge : ICOSIDODECAHEDRON_EDGES) {
+            addColoredVertex(buffer, edge[0], edgeColor);
+            addColoredVertex(buffer, edge[1], edgeColor);
         }
         tessellator.draw();
     }
@@ -175,24 +195,32 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
             return;
         }
 
-        GlStateManager.enableDepth();
-        GlStateManager.depthMask(true);
-        GlStateManager.enableRescaleNormal();
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(
-            GlStateManager.SourceFactor.SRC_ALPHA,
-            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
-            GlStateManager.SourceFactor.ONE,
-            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-
-        RenderHelper.enableStandardItemLighting();
+        GlStateManager.pushMatrix();
         try {
-            if (!renderBlockcrafteryConfiguration(configuration)) {
-                Minecraft.getMinecraft().getRenderItem().renderItem(result, TransformType.NONE);
+            // Scale the core down to fit inside the frame's diagonal, so it doesn't clip the frame
+            GlStateManager.scale(BLOCK_CORE_DIAGONAL_SCALE, BLOCK_CORE_DIAGONAL_SCALE, BLOCK_CORE_DIAGONAL_SCALE);
+
+            GlStateManager.enableDepth();
+            GlStateManager.depthMask(true);
+            GlStateManager.enableRescaleNormal();
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(
+                GlStateManager.SourceFactor.SRC_ALPHA,
+                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SourceFactor.ONE,
+                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+            RenderHelper.enableStandardItemLighting();
+            try {
+                if (!renderBlockcrafteryConfiguration(configuration)) {
+                    Minecraft.getMinecraft().getRenderItem().renderItem(result, TransformType.NONE);
+                }
+            } finally {
+                RenderHelper.disableStandardItemLighting();
             }
         } finally {
-            RenderHelper.disableStandardItemLighting();
+            GlStateManager.popMatrix();
         }
     }
 
@@ -349,9 +377,13 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         buffer.pos(fourthX, fourthY, fourthZ).tex(FRAME_EDGE_UV_MAX, v).endVertex();
     }
 
-    private static void addColoredVertex(BufferBuilder buffer, double[] vertex, float[] color) {
+    private static void addColoredVertex(BufferBuilder buffer, double[] vertex, int color) {
         buffer.pos(vertex[0], vertex[1], vertex[2])
-            .color(color[0], color[1], color[2], color[3])
+            .color(
+                (color >>> 16 & 0xFF) / 255.0F,
+                (color >>> 8 & 0xFF) / 255.0F,
+                (color & 0xFF) / 255.0F,
+                (color >>> 24 & 0xFF) / 255.0F)
             .endVertex();
     }
 
@@ -436,6 +468,41 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         return Collections.unmodifiableList(faces);
     }
 
+    /**
+     * Build each geometric edge once. Faces share their vertex arrays, so
+     * identity is sufficient and avoids drawing transparent edges twice.
+     */
+    private static List<double[][]> createIcosidodecahedronEdges(List<double[][]> faces) {
+        IdentityHashMap<double[], Integer> vertexIndices = new IdentityHashMap<>();
+        Set<Long> edgeIndices = new HashSet<>();
+        List<double[][]> edges = new ArrayList<>();
+
+        for (double[][] face : faces) {
+            for (int index = 0; index < face.length; index++) {
+                double[] first = face[index];
+                double[] second = face[(index + 1) % face.length];
+                int firstIndex = getVertexIndex(vertexIndices, first);
+                int secondIndex = getVertexIndex(vertexIndices, second);
+                int minimum = Math.min(firstIndex, secondIndex);
+                int maximum = Math.max(firstIndex, secondIndex);
+                long edgeIndex = (long) minimum << 32 | maximum & 0xFFFFFFFFL;
+
+                if (edgeIndices.add(edgeIndex)) edges.add(new double[][] { first, second });
+            }
+        }
+
+        return Collections.unmodifiableList(edges);
+    }
+
+    private static int getVertexIndex(IdentityHashMap<double[], Integer> vertexIndices, double[] vertex) {
+        Integer index = vertexIndices.get(vertex);
+        if (index != null) return index;
+
+        int nextIndex = vertexIndices.size();
+        vertexIndices.put(vertex, nextIndex);
+        return nextIndex;
+    }
+
     private static void normalizeToRadius(List<Edge> edges) {
         double radius = 0.0D;
         for (Edge edge : edges) {
@@ -456,7 +523,9 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         final double[] horizontal = normalize(cross(normal, reference));
         final double[] vertical = cross(normal, horizontal);
 
-        edges.sort((first, second) -> Double.compare(angleAroundVertex(second.midpoint, normal, horizontal, vertical), angleAroundVertex(first.midpoint, normal, horizontal, vertical)));
+        edges.sort((first, second) -> Double.compare(
+            angleAroundVertex(second.midpoint, normal, horizontal, vertical),
+            angleAroundVertex(first.midpoint, normal, horizontal, vertical)));
     }
 
     private static double angleAroundVertex(double[] point, double[] normal, double[] horizontal, double[] vertical) {

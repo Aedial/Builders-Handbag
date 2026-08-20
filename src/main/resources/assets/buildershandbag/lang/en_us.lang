@@ -6,7 +6,13 @@ tile.buildershandbag.handbag.name=Builder's Handbag
 buildershandbag.config.client=Client
 buildershandbag.config.client.rendering=Rendering
 buildershandbag.config.client.rendering.core_scale=Core scale
-buildershandbag.config.client.rendering.core_scale.tooltip=Uniform scale of the rotating handbag core. 0.875 (14/16) fills the 14x14x14 space enclosed by the frame.
+buildershandbag.config.client.rendering.core_scale.tooltip=Scale of the handbag core
+buildershandbag.config.client.rendering.core_face_color=Core face color
+buildershandbag.config.client.rendering.core_face_color.tooltip=Color of the faces on the default icosidodecahedron core, as #AARRGGBB
+buildershandbag.config.client.rendering.core_edge_color=Core edge color
+buildershandbag.config.client.rendering.core_edge_color.tooltip=Color of the edges on the default icosidodecahedron core, as #AARRGGBB
+buildershandbag.config.client.rendering.core_rotation_speed=Core rotation speed
+buildershandbag.config.client.rendering.core_rotation_speed.tooltip=Rotation speed multiplier for the core
 
 buildershandbag.config.server=Server
 buildershandbag.config.server.integrations=Integrations
