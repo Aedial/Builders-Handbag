@@ -1,14 +1,26 @@
 # Misc
 item.buildershandbag.handbag.name=建筑师手提包
 tile.buildershandbag.handbag.name=建筑师手提包
+integration.buildershandbag.chisel=凿子（Chisel）
+integration.buildershandbag.architecturecraft=建筑师工艺（ArchitectureCraft）
+integration.buildershandbag.blockcraftery=方块工匠（Blockcraftery）
 
 # Config
 buildershandbag.config.client=客户端
+buildershandbag.config.client.tooltip=客户端配置
 buildershandbag.config.client.rendering=渲染
+buildershandbag.config.client.rendering.tooltip=手提包的渲染选项
 buildershandbag.config.client.rendering.core_scale=核心缩放
-buildershandbag.config.client.rendering.core_scale.tooltip=旋转手提包核心的统一缩放比例。值为0.875（14/16）时，可填满框架所包围的14x14x14空间。
+buildershandbag.config.client.rendering.core_scale.tooltip=手提包核心的缩放比例
+buildershandbag.config.client.rendering.core_face_color=核心面颜色
+buildershandbag.config.client.rendering.core_face_color.tooltip=默认二十面体核心的面颜色，格式为 #AARRGGBB
+buildershandbag.config.client.rendering.core_edge_color=核心边颜色
+buildershandbag.config.client.rendering.core_edge_color.tooltip=默认二十面体核心的边颜色，格式为 #AARRGGBB
+buildershandbag.config.client.rendering.core_rotation_speed=核心旋转速度
+buildershandbag.config.client.rendering.core_rotation_speed.tooltip=核心旋转速度乘数
 
 buildershandbag.config.server=服务端
+buildershandbag.config.server.tooltip=服务端配置
 buildershandbag.config.server.integrations=联动
 buildershandbag.config.server.integrations.tooltip=启用或禁用与其他模组的联动
 buildershandbag.config.server.integrations.chisel=凿子（Chisel）
@@ -21,16 +33,19 @@ buildershandbag.config.server.integrations.ae2_refill=AE2补货
 buildershandbag.config.server.integrations.ae2_refill.tooltip=如果网络中存有对应方块，通过AE2链接为已选中的空配置补充材料
 
 # Tooltips
-tooltip.buildershandbag.configurations=配置：%s/%s
-tooltip.buildershandbag.selected=当前选择：%s（%s 储量）
-tooltip.buildershandbag.no_selection=未选择配置
-tooltip.buildershandbag.open=右键点击以配置
-tooltip.buildershandbag.scroll=持有时，潜行滚动滚轮以切换配置
+tooltip.buildershandbag.tooltip=§b能够储存并选择多种装饰方块配置。支持%s
+tooltip.buildershandbag.ae2_disabled=§7AE2补货已禁用
+tooltip.buildershandbag.no_integrations=§c无模组联动。§e请确保已安装兼容模组，并在配置中启用联动。
+tooltip.buildershandbag.no_configurations=§e未存储配置。§b右键点击§e/§bShift+右键点击§e来添加一个
+tooltip.buildershandbag.configurations=配置：§a%s/%s
+tooltip.buildershandbag.selected=当前选择：§b%s§7（§a%s§7 储量）。§b右键点击§7放置方块
+tooltip.buildershandbag.no_selection=§e未选择配置。§b潜行滚动滚轮§e来选择一个
 
 # Messages
+message.buildershandbag.no_configuration=该手提包没有存储配置
 message.buildershandbag.no_selection=先选择一个手提袋配置。
 message.buildershandbag.invalid_configuration=该手提袋配置已失效。
-message.buildershandbag.no_material=未存储匹配材料，AE2或玩家物品栏中也没有。
+message.buildershandbag.no_material=配置的材料已耗尽且无法补充
 message.buildershandbag.blockcraftery_failed=无法配置该方块工匠方块。
 message.buildershandbag.full=没有空闲的配置槽位。
 message.buildershandbag.invalid_option=该装饰选项已不可用。
@@ -39,15 +54,15 @@ message.buildershandbag.added=配置已添加。
 # GUI
 gui.buildershandbag.page.previous=上一配置页
 gui.buildershandbag.page.next=下一配置页
-gui.buildershandbag.configuration.stored=已存储：%s x %s
-gui.buildershandbag.configuration.select=左键点击：选中以移动
-gui.buildershandbag.configuration.deselect=左键点击：取消选中
-gui.buildershandbag.configuration.remove=右键点击：移除并返还已存储的方块
-gui.buildershandbag.configuration.move=方向键：在列表中移动
-gui.buildershandbag.configuration.move_edge=Home/PgUp：移至开头；End/PgDn：移至末尾
-gui.buildershandbag.option.add=左键点击：添加此配置
-gui.buildershandbag.material.title=配置材料
-gui.buildershandbag.material.slot=配置材料槽位
-gui.buildershandbag.material.description=在此处放置一个方块以列出其装饰选项。
-gui.buildershandbag.material.shift_click=Shift点击方块以将其放入配置材料槽位。
-gui.buildershandbag.material.shift_click_block=Shift点击该方块以将其放入配置材料槽位。
+gui.buildershandbag.configuration.stored=§7已存储：§a%s§7 x §b%s
+gui.buildershandbag.configuration.select=§b左键点击§7：选中以移动
+gui.buildershandbag.configuration.deselect=§b左键点击§7：取消选中
+gui.buildershandbag.configuration.remove=§b右键点击§7：移除并返还已存储的方块
+gui.buildershandbag.configuration.move=§b方向键§7：在列表中移动
+gui.buildershandbag.configuration.move_edge=§bHome/PgUp§7：移至开头；§bEnd/PgDn§7：移至末尾
+gui.buildershandbag.option.add=§b左键点击§7：添加此配置
+gui.buildershandbag.material.title=§b配置材料
+gui.buildershandbag.material.description=§a在此处放置一个方块以列出其装饰选项。
+gui.buildershandbag.material.shift_click=§7Shift点击方块以将其放入配置材料槽位。
+gui.buildershandbag.material.choose_option=§b在右侧选择一个选项
+gui.buildershandbag.material.shift_click_block=§bShift点击§7方块以将其放入配置材料槽位，或将其拖入槽位
