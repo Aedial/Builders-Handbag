@@ -14,13 +14,13 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -52,7 +52,6 @@ import com.buildershandbag.storage.HandbagStorage;
 public class ItemHandbag extends ItemBlock {
 
     private static final String AE2_MODID = "appliedenergistics2";
-    private static final String BLOCKCRAFTERY_MODID = "blockcraftery";
 
     public ItemHandbag(BlockHandbag block) {
         super(block);
@@ -129,7 +128,11 @@ public class ItemHandbag extends ItemBlock {
         int selected = HandbagStorage.getSelected(handbag);
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, selected);
         if (configuration == null) {
-            return super.onItemUse(player, world, clickedPos, hand, side, hitX, hitY, hitZ);
+                String messageKey = HandbagStorage.getConfigurations(handbag).isEmpty()
+                    ? "message.buildershandbag.no_configuration"
+                    : "message.buildershandbag.no_selection";
+                HandbagMessages.error(player, messageKey);
+                return EnumActionResult.FAIL;
         }
 
         ItemStack resultStack = configuration.getResult();
@@ -168,8 +171,14 @@ public class ItemHandbag extends ItemBlock {
             EnumActionResult result = resultStack.getItem().onItemUse(player, world, clickedPos, hand, side, hitX, hitY, hitZ);
             if (result != EnumActionResult.SUCCESS) return result;
 
+            // ArchitectureCraft fills the placed tile from stack NBT after placement,
+            // so the client needs a deferred tile sync for it to render correctly
+            if (configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT) {
+                syncArchitectureCraftTile(world, placementPos);
+            }
+
             if (configuration.getIntegration() == HandbagIntegration.BLOCKCRAFTERY
-                    && (!Loader.isModLoaded(BLOCKCRAFTERY_MODID) || !configureBlockcraftery(
+                    && (!HandbagIntegration.BLOCKCRAFTERY.isModLoaded() || !configureBlockcraftery(
                         world, placementPos, player,
                         side, hitX, hitY, hitZ,
                         configuration.getMaterial()))) {
@@ -181,6 +190,13 @@ public class ItemHandbag extends ItemBlock {
         } finally {
             player.setHeldItem(hand, handbag);
         }
+    }
+
+    private void syncArchitectureCraftTile(World world, BlockPos position) {
+        TileEntity tile = world.getTileEntity(position);
+        if (tile == null) return;
+
+        HandbagNetwork.syncPlacedTile(world, position, tile);
     }
 
     /**
@@ -228,7 +244,7 @@ public class ItemHandbag extends ItemBlock {
         return block.isReplaceable(world, clickedPos) ? clickedPos : clickedPos.offset(side);
     }
 
-    @Optional.Method(modid = BLOCKCRAFTERY_MODID)
+    @Optional.Method(modid = HandbagIntegration.BLOCKCRAFTERY_MODID)
     private boolean configureBlockcraftery(World world, BlockPos position, EntityPlayer player, EnumFacing side,
             float hitX, float hitY, float hitZ, ItemStack material) {
         return BlockcrafteryIntegration.configure(world, position, player, side, hitX, hitY, hitZ, material);
@@ -237,6 +253,12 @@ public class ItemHandbag extends ItemBlock {
     @Optional.Method(modid = AE2_MODID)
     private int pullMaterialFromNetwork(EntityPlayer player, ItemStack handbag, ItemStack material, int requestedAmount) {
         return Ae2Integration.refill(player, handbag, material, requestedAmount);
+    }
+
+    @Optional.Method(modid = AE2_MODID)
+    @SideOnly(Side.CLIENT)
+    private void addAe2Tooltip(ItemStack stack, List<String> tooltip) {
+        Ae2Integration.addTooltip(stack, tooltip);
     }
 
     public static void syncToClient(EntityPlayerMP player, EnumHand hand) {
@@ -252,14 +274,28 @@ public class ItemHandbag extends ItemBlock {
     @SideOnly(Side.CLIENT)
     public void addInformation(@Nonnull ItemStack stack, @Nullable World world, @Nonnull List<String> tooltip,
             @Nonnull ITooltipFlag flag) {
-        // TODO: Add better info on what the item does, and how to use it.
+
+        List<HandbagIntegration> integrations = HandbagServerConfig.integrations.getEnabledIntegrations();
+        String integrationNames = integrations.stream()
+            .map(HandbagIntegration::getTranslatedName)
+            .reduce((a, b) -> a + " / " + b)
+            .orElse(I18n.format("tooltip.buildershandbag.no_integrations"));
+        tooltip.add(I18n.format("tooltip.buildershandbag.tooltip", integrationNames));
+
+        if (Loader.isModLoaded(AE2_MODID)) addAe2Tooltip(stack, tooltip);
+
+        tooltip.add("");
 
         List<HandbagConfiguration> configurations = HandbagStorage.getConfigurations(stack);
-        int selected = HandbagStorage.getSelected(stack);
+        if (configurations.isEmpty()) {
+            tooltip.add(I18n.format("tooltip.buildershandbag.no_configurations"));
+            return;
+        }
 
         tooltip.add(I18n.format("tooltip.buildershandbag.configurations",
             configurations.size(), HandbagStorage.CONFIGURATION_COUNT));
 
+        int selected = HandbagStorage.getSelected(stack);
         if (selected >= 0) {
             HandbagConfiguration configuration = configurations.get(selected);
             tooltip.add(I18n.format(
@@ -267,11 +303,8 @@ public class ItemHandbag extends ItemBlock {
                 configuration.getResult().getDisplayName(),
                 configuration.getMaterialCount()));
         } else {
-            tooltip.add(TextFormatting.GRAY + I18n.format("tooltip.buildershandbag.no_selection"));
+            // may not have selected on first configuration
+            tooltip.add(I18n.format("tooltip.buildershandbag.no_selection"));
         }
-
-        tooltip.add("");
-        tooltip.add(TextFormatting.AQUA + I18n.format("tooltip.buildershandbag.open"));
-        tooltip.add(TextFormatting.DARK_GRAY + I18n.format("tooltip.buildershandbag.scroll"));
     }
 }

@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 
 import com.elytradev.architecture.common.shape.EnumShape;
 
+
 /**
  * ArchitectureCraft shape integration.
  */

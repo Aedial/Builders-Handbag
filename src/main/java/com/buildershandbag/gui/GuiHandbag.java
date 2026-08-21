@@ -10,16 +10,15 @@ import org.lwjgl.input.Keyboard;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Slot;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -32,7 +31,6 @@ import com.buildershandbag.container.HandbagLayout;
 import com.buildershandbag.integration.HandbagConfigurationOption;
 import com.buildershandbag.integration.HandbagConfigurationProvider;
 import com.buildershandbag.integration.HandbagIntegration;
-import com.buildershandbag.item.ItemHandbag;
 import com.buildershandbag.network.HandbagNetwork;
 import com.buildershandbag.network.PacketAddHandbagConfiguration;
 import com.buildershandbag.network.PacketMoveHandbagConfiguration;
@@ -51,8 +49,6 @@ import com.buildershandbag.storage.HandbagStorage;
  */
 @SideOnly(Side.CLIENT)
 public class GuiHandbag extends GuiContainer {
-
-    private static final String BLOCKCRAFTERY_MODID = "blockcraftery";
 
     private static final ResourceLocation BACKGROUND = new ResourceLocation(Tags.MODID,
         "textures/guis/handbag.png");
@@ -89,6 +85,67 @@ public class GuiHandbag extends GuiContainer {
     private GuiButton previousPageButton;
     private GuiButton nextPageButton;
 
+    /**
+     * A vanilla button whose lower edge remains visible when its height is less
+     * than the 20-pixel height of the vanilla button texture.
+     */
+    private static final class SmallVanillaButton extends GuiButton {
+
+        private SmallVanillaButton(int buttonId, int x, int y, int width, int height, String text) {
+            super(buttonId, x, y, width, height, text);
+        }
+
+        @Override
+        public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) {
+            if (!visible) return;
+
+            FontRenderer fontRenderer = mc.fontRenderer;
+            mc.getTextureManager().bindTexture(BUTTON_TEXTURES);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+            hovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
+            int hoverState = getHoverState(hovered);
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(
+                GlStateManager.SourceFactor.SRC_ALPHA,
+                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SourceFactor.ONE,
+                GlStateManager.DestFactor.ZERO);
+            GlStateManager.blendFunc(
+                GlStateManager.SourceFactor.SRC_ALPHA,
+                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+
+            int leftWidth = width / 2;
+            int rightWidth = width - leftWidth;
+            int bottomHeight = Math.min(2, height);
+            int middleHeight = height - bottomHeight;
+            int textureY = 46 + hoverState * 20;
+
+            drawTexturedModalRect(x, y, 0, textureY, leftWidth, middleHeight);
+            drawTexturedModalRect(x + leftWidth, y, 200 - rightWidth, textureY, rightWidth, middleHeight);
+            drawTexturedModalRect(x, y + middleHeight, 0, textureY + 20 - bottomHeight, leftWidth, bottomHeight);
+            drawTexturedModalRect(
+                x + leftWidth,
+                y + middleHeight,
+                200 - rightWidth,
+                textureY + 20 - bottomHeight,
+                rightWidth,
+                bottomHeight);
+
+            mouseDragged(mc, mouseX, mouseY);
+
+            int textColor = 0xE0E0E0;
+            if (packedFGColour != 0) {
+                textColor = packedFGColour;
+            } else if (!enabled) {
+                textColor = 0xA0A0A0;
+            } else if (hovered) {
+                textColor = 0xFFFFA0;
+            }
+            drawCenteredString(fontRenderer, displayString, x + width / 2, y + (height - 8) / 2, textColor);
+        }
+    }
+
     public GuiHandbag(ContainerHandbag container) {
         super(container);
         this.container = container;
@@ -96,21 +153,18 @@ public class GuiHandbag extends GuiContainer {
         ySize = GUI_HEIGHT;
     }
 
-    // FIXME: the tooltips do not have the first few lines in gray, like is done for vanilla
-
     @Override
     public void initGui() {
         super.initGui();
 
-        // TODO: draw better buttons (vanilla cuts the button if they are smaller than 20px)
-        previousPageButton = new GuiButton(
+        previousPageButton = new SmallVanillaButton(
             PREVIOUS_PAGE_BUTTON,
             guiLeft + OPTION_X,
             guiTop + PAGE_Y,
             PAGE_BUTTON_WIDTH,
             PAGE_HEIGHT,
             "<");
-        nextPageButton = new GuiButton(
+        nextPageButton = new SmallVanillaButton(
             NEXT_PAGE_BUTTON,
             guiLeft + OPTION_X + OPTION_COLUMNS * SLOT_SIZE - PAGE_BUTTON_WIDTH,
             guiTop + PAGE_Y,
@@ -339,12 +393,12 @@ public class GuiHandbag extends GuiContainer {
 
     private boolean renderBlockcrafteryPreview(ItemStack frame, ItemStack material, HandbagIntegration integration,
             int x, int y) {
-        if (integration != HandbagIntegration.BLOCKCRAFTERY || !Loader.isModLoaded(BLOCKCRAFTERY_MODID)) return false;
+        if (integration != HandbagIntegration.BLOCKCRAFTERY || !HandbagIntegration.BLOCKCRAFTERY.isModLoaded()) return false;
 
         return renderBlockcrafteryPreview(frame, material, x, y);
     }
 
-    @Optional.Method(modid = BLOCKCRAFTERY_MODID)
+    @Optional.Method(modid = HandbagIntegration.BLOCKCRAFTERY_MODID)
     private boolean renderBlockcrafteryPreview(ItemStack frame, ItemStack material, int x, int y) {
         BlockcrafteryPreviewModel.Preview preview = BlockcrafteryPreviewModel.create(itemRender, frame, material);
         if (preview == null) return false;
@@ -425,9 +479,8 @@ public class GuiHandbag extends GuiContainer {
         Slot slot = getSlotAtPosition(mouseX, mouseY);
         if (slot == null || !slot.getHasStack()) return;
 
-        List<String> lines = new ArrayList<>(slot.getStack().getTooltip(player, getTooltipFlag()));
-        if (slot.slotNumber != 0 && HandbagConfigurationProvider.isConfigurationMaterial(slot.getStack())
-                && !(slot.getStack().getItem() instanceof ItemHandbag)) {
+        List<String> lines = getItemTooltip(slot.getStack());
+        if (slot.slotNumber != 0 && HandbagConfigurationProvider.isConfigurationMaterial(slot.getStack())) {
             lines.add("");
             lines.add(I18n.format("gui.buildershandbag.material.shift_click_block"));
         }
@@ -448,7 +501,7 @@ public class GuiHandbag extends GuiContainer {
         EntityPlayer player = Minecraft.getMinecraft().player;
         if (player == null) return;
 
-        List<String> lines = new ArrayList<>(configuration.getResult().getTooltip(player, getTooltipFlag()));
+        List<String> lines = getItemTooltip(configuration.getResult());
         lines.add("");
         lines.add(I18n.format(
             "gui.buildershandbag.configuration.stored",
@@ -472,7 +525,7 @@ public class GuiHandbag extends GuiContainer {
         EntityPlayer player = Minecraft.getMinecraft().player;
         if (player == null) return;
 
-        List<String> lines = new ArrayList<>(option.getResult().getTooltip(player, getTooltipFlag()));
+        List<String> lines = getItemTooltip(option.getResult());
         lines.add("");
         lines.add(I18n.format("gui.buildershandbag.option.add"));
 
@@ -485,20 +538,21 @@ public class GuiHandbag extends GuiContainer {
 
         List<String> lines = new ArrayList<>();
         ItemStack material = container.getConfigurationMaterial();
-        if (!material.isEmpty()) lines.addAll(material.getTooltip(player, getTooltipFlag()));
-
-        lines.add(I18n.format(material.isEmpty()
-            ? "gui.buildershandbag.material.title"
-            : "gui.buildershandbag.material.slot"));
-        lines.add(I18n.format("gui.buildershandbag.material.description"));
-        lines.add(I18n.format("gui.buildershandbag.material.shift_click"));
+        if (material.isEmpty()) {
+            lines.add(I18n.format("gui.buildershandbag.material.title"));
+            lines.add("");
+            lines.add(I18n.format("gui.buildershandbag.material.description"));
+            lines.add(I18n.format("gui.buildershandbag.material.shift_click"));
+        } else {
+            lines.addAll(getItemTooltip(material));
+            lines.add("");
+            lines.add(I18n.format("gui.buildershandbag.material.choose_option"));
+        }
 
         drawHoveringText(lines, mouseX, mouseY);
     }
 
-    private ITooltipFlag getTooltipFlag() {
-        return mc.gameSettings.advancedItemTooltips
-            ? ITooltipFlag.TooltipFlags.ADVANCED
-            : ITooltipFlag.TooltipFlags.NORMAL;
+    private List<String> getItemTooltip(ItemStack stack) {
+        return new ArrayList<>(getItemToolTip(stack));
     }
 }

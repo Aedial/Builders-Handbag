@@ -1,9 +1,15 @@
 package com.buildershandbag.integration;
 
+import java.util.List;
+
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.network.IGuiHandler;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
@@ -13,6 +19,7 @@ import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.channels.IItemStorageChannel;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.IConfigManager;
+import appeng.core.localization.GuiText;
 import appeng.helpers.WirelessTerminalGuiObject;
 import appeng.me.helpers.BaseActionSource;
 import appeng.util.ConfigManager;
@@ -45,8 +52,7 @@ public final class Ae2Integration implements IWirelessTermHandler {
      */
     public static int refill(EntityPlayer player, ItemStack handbag, ItemStack material, int requestedAmount) {
         if (!HandbagServerConfig.integrations.enableAe2Refill || requestedAmount <= 0
-                || handbag.isEmpty() || material.isEmpty()
-                || WIRELESS_HANDLER.getEncryptionKey(handbag).isEmpty()) {
+                || handbag.isEmpty() || material.isEmpty() || !isLinked(handbag)) {
             return 0;
         }
 
@@ -56,11 +62,7 @@ public final class Ae2Integration implements IWirelessTermHandler {
 
         IMEMonitor<IAEItemStack> monitor = wireless.getInventory(
             AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class));
-        if (monitor == null) {
-            return 0;
-        } else {
-            wireless.getActionableNode().getGrid();
-        }
+        if (monitor == null) return 0;
 
         IAEItemStack request = AEItemStack.fromItemStack(material.copy());
         if (request == null) return 0;
@@ -71,6 +73,22 @@ public final class Ae2Integration implements IWirelessTermHandler {
             energy, monitor, request, new BaseActionSource(), Actionable.MODULATE);
 
         return extracted == null ? 0 : (int) Math.min(requestedAmount, extracted.getStackSize());
+    }
+
+    public static boolean isLinked(ItemStack handbag) {
+        return !handbag.isEmpty() && !WIRELESS_HANDLER.getEncryptionKey(handbag).isEmpty();
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void addTooltip(ItemStack handbag, List<String> tooltip) {
+        if (!HandbagServerConfig.integrations.enableAe2Refill) {
+            tooltip.add(I18n.format("tooltip.buildershandbag.ae2_disabled"));
+            return;
+        }
+
+        tooltip.add(isLinked(handbag)
+            ? TextFormatting.GREEN + GuiText.Linked.getLocal()
+            : TextFormatting.RED + GuiText.Unlinked.getLocal());
     }
 
     @Override

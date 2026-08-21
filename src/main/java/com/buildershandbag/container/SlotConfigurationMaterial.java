@@ -9,9 +9,6 @@ import com.buildershandbag.integration.HandbagConfigurationProvider;
 import javax.annotation.Nonnull;
 
 
-/**
- * The only real handbag configuration slot.
- */
 public class SlotConfigurationMaterial extends Slot {
 
     public SlotConfigurationMaterial(IInventory inventory, int slotIndex, int xPosition, int yPosition) {

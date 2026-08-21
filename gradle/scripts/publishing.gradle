@@ -40,7 +40,7 @@ if (propertyBool('publish_to_maven')) {
 }
 
 // Documentation here: https://github.com/Darkhax/CurseForgeGradle
-if (propertyBool('publish_to_curseforge')) {
+if (propertyBool('publish_to_curseforge') && propertyString('curseforge_project_id') != '') {
     assertProperty('curseforge_project_id')
     assertProperty('release_type')
     setDefaultProperty('curseforge_debug', false, false)
