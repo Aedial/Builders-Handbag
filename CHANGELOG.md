@@ -9,6 +9,9 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 
 ## [1.0.2] - 2026-08-21
+### Added
+- Add contents overlay rendering above the experience bar, to show the contents of the currently selected configuration and adjacent configurations.
+
 ### Fixed
 - Fix handbags with no stored configurations being placed instead of showing an error message when used.
 

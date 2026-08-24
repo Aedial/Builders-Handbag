@@ -75,15 +75,7 @@ public class GuiHandbag extends GuiContainer {
     private static final int PAGE_BUTTON_WIDTH = 12;
     private static final int PREVIOUS_PAGE_BUTTON = 0;
     private static final int NEXT_PAGE_BUTTON = 1;
-
-    /** Current page of options being displayed. */
-    private int optionPage;
-    /** Client-only selection used to choose the configuration being reordered. */
-    private int movingConfiguration = -1;
-
-    private final ContainerHandbag container;
-    private GuiButton previousPageButton;
-    private GuiButton nextPageButton;
+    private static final int RIGHT_BUTTON_X = OPTION_X + OPTION_COLUMNS * SLOT_SIZE - PAGE_BUTTON_WIDTH;
 
     /**
      * A vanilla button whose lower edge remains visible when its height is less
@@ -93,6 +85,15 @@ public class GuiHandbag extends GuiContainer {
 
         private SmallVanillaButton(int buttonId, int x, int y, int width, int height, String text) {
             super(buttonId, x, y, width, height, text);
+        }
+
+        private SmallVanillaButton(int buttonId, int width, int height, String text) {
+            this(buttonId, 0, 0, width, height, text);
+        }
+
+        public void setPosition(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
 
         @Override
@@ -146,6 +147,18 @@ public class GuiHandbag extends GuiContainer {
         }
     }
 
+    /** Current page of options being displayed. */
+    private int optionPage;
+    /** Client-only selection used to choose the configuration being reordered. */
+    private int movingConfiguration = -1;
+
+    private final ContainerHandbag container;
+    private SmallVanillaButton previousPageButton = new SmallVanillaButton(
+        PREVIOUS_PAGE_BUTTON, PAGE_BUTTON_WIDTH, PAGE_HEIGHT, "<");
+    private SmallVanillaButton nextPageButton = new SmallVanillaButton(
+        NEXT_PAGE_BUTTON, PAGE_BUTTON_WIDTH, PAGE_HEIGHT, ">");
+
+
     public GuiHandbag(ContainerHandbag container) {
         super(container);
         this.container = container;
@@ -157,20 +170,8 @@ public class GuiHandbag extends GuiContainer {
     public void initGui() {
         super.initGui();
 
-        previousPageButton = new SmallVanillaButton(
-            PREVIOUS_PAGE_BUTTON,
-            guiLeft + OPTION_X,
-            guiTop + PAGE_Y,
-            PAGE_BUTTON_WIDTH,
-            PAGE_HEIGHT,
-            "<");
-        nextPageButton = new SmallVanillaButton(
-            NEXT_PAGE_BUTTON,
-            guiLeft + OPTION_X + OPTION_COLUMNS * SLOT_SIZE - PAGE_BUTTON_WIDTH,
-            guiTop + PAGE_Y,
-            PAGE_BUTTON_WIDTH,
-            PAGE_HEIGHT,
-            ">");
+        previousPageButton.setPosition(guiLeft + OPTION_X, guiTop + PAGE_Y);
+        nextPageButton.setPosition(guiLeft + RIGHT_BUTTON_X, guiTop + PAGE_Y);
 
         buttonList.add(previousPageButton);
         buttonList.add(nextPageButton);
@@ -383,9 +384,11 @@ public class GuiHandbag extends GuiContainer {
             String overlay) {
         GlStateManager.pushMatrix();
         RenderHelper.enableGUIStandardItemLighting();
+
         if (!renderBlockcrafteryPreview(stack, material, integration, x, y)) {
             itemRender.renderItemAndEffectIntoGUI(stack, x, y);
         }
+
         itemRender.renderItemOverlayIntoGUI(fontRenderer, stack, x, y, overlay);
         RenderHelper.disableStandardItemLighting();
         GlStateManager.popMatrix();
@@ -436,7 +439,8 @@ public class GuiHandbag extends GuiContainer {
         int configurationIndex = getConfigurationIndex(localX, localY);
         List<HandbagConfiguration> configurations = HandbagStorage.getConfigurations(getHandbagStack());
         if (configurationIndex >= 0 && configurationIndex < configurations.size()) {
-            drawConfigurationTooltip(configurations.get(configurationIndex), configurationIndex, mouseX, mouseY);
+            HandbagConfiguration configuration = configurations.get(configurationIndex);
+            drawConfigurationTooltip(configuration, configurationIndex, mouseX, mouseY);
             return true;
         }
 
@@ -453,19 +457,15 @@ public class GuiHandbag extends GuiContainer {
             return true;
         }
 
-        if (isOverButton(previousPageButton, mouseX, mouseY)) {
-            drawHoveringText(
-                Collections.singletonList(I18n.format("gui.buildershandbag.page.previous")),
-                mouseX,
-                mouseY);
+        if (previousPageButton.isMouseOver()) {
+            String text = I18n.format("gui.buildershandbag.page.previous");
+            drawHoveringText(Collections.singletonList(text), mouseX, mouseY);
             return true;
         }
 
-        if (isOverButton(nextPageButton, mouseX, mouseY)) {
-            drawHoveringText(
-                Collections.singletonList(I18n.format("gui.buildershandbag.page.next")),
-                mouseX,
-                mouseY);
+        if (nextPageButton.isMouseOver()) {
+            String text = I18n.format("gui.buildershandbag.page.next");
+            drawHoveringText(Collections.singletonList(text), mouseX, mouseY);
             return true;
         }
 
@@ -486,15 +486,6 @@ public class GuiHandbag extends GuiContainer {
         }
 
         drawHoveringText(lines, mouseX, mouseY);
-    }
-
-    private boolean isOverButton(GuiButton button, int mouseX, int mouseY) {
-        return button != null
-            && button.visible
-            && mouseX >= button.x
-            && mouseX < button.x + button.width
-            && mouseY >= button.y
-            && mouseY < button.y + button.height;
     }
 
     private void drawConfigurationTooltip(HandbagConfiguration configuration, int index, int mouseX, int mouseY) {

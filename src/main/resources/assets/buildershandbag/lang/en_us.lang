@@ -18,6 +18,10 @@ buildershandbag.config.client.rendering.core_edge_color=Core edge color
 buildershandbag.config.client.rendering.core_edge_color.tooltip=Color of the edges on the default icosidodecahedron core, as #AARRGGBB
 buildershandbag.config.client.rendering.core_rotation_speed=Core rotation speed
 buildershandbag.config.client.rendering.core_rotation_speed.tooltip=Rotation speed multiplier for the core
+buildershandbag.config.client.rendering.render_contents_overlay=Render contents overlay
+buildershandbag.config.client.rendering.render_contents_overlay.tooltip=Whether to render the contents overlay above the experience bar
+buildershandbag.config.client.rendering.content_overlay_y_offset=Contents overlay Y offset
+buildershandbag.config.client.rendering.content_overlay_y_offset.tooltip=Vertical gap in pixels between the contents overlay and the experience bar
 
 buildershandbag.config.server=Server
 buildershandbag.config.server.tooltip=Server Configuration
@@ -38,7 +42,7 @@ tooltip.buildershandbag.ae2_disabled=§7AE2 refilling disabled
 tooltip.buildershandbag.no_integrations=§cno integrations. §eMake sure the compatible mods are installed and enabled in config.
 tooltip.buildershandbag.no_configurations=§eNo configurations stored. §bRight-click§e/§bShift + Right-click§e to add one
 tooltip.buildershandbag.configurations=Configurations: §a%s/%s
-tooltip.buildershandbag.selected=Selected: §b%s§7 (§a%s§7 stored). §bRight-click§7 to place the block
+tooltip.buildershandbag.selected=Selected: §b%s§7 (§a%s§7 stored). §bRight-click§7 to place the block, §bShift + Scroll§7 to change selected block
 tooltip.buildershandbag.no_selection=§eNo configuration selected. §bSneak-scroll§e to select one
 
 # Messages
@@ -55,11 +59,11 @@ message.buildershandbag.added=Configuration added
 gui.buildershandbag.page.previous=Previous configuration page
 gui.buildershandbag.page.next=Next configuration page
 gui.buildershandbag.configuration.stored=§7Stored: §a%s§7 x §b%s
-gui.buildershandbag.configuration.select=§bLeft-click§7: select for moving
+gui.buildershandbag.configuration.select=§bLeft-click§7: select for reordering (only affects order)
 gui.buildershandbag.configuration.deselect=§bLeft-click§7: deselect
 gui.buildershandbag.configuration.remove=§bRight-click§7: remove and return stored blocks
 gui.buildershandbag.configuration.move=§bArrow keys§7: move in the list
-gui.buildershandbag.configuration.move_edge=§bHome/PgUp§7: first; §bEnd/PgDn§7: last
+gui.buildershandbag.configuration.move_edge=§bHome/PgUp§7: move to first; §bEnd/PgDn§7: move to last
 gui.buildershandbag.option.add=§bLeft-click§7: add this configuration
 gui.buildershandbag.material.title=§bConfiguration material
 gui.buildershandbag.material.description=§aPlace a block here to list its decoration options
