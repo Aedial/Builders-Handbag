@@ -10,7 +10,7 @@ import com.buildershandbag.Tags;
 
 
 /**
- * Client-only rendering options for placed handbags.
+ * Client-only rendering options for handbags.
  */
 @Config(modid = Tags.MODID, name = Tags.MODID + "/client", category = "client")
 @Config.LangKey("buildershandbag.config.client")
@@ -76,6 +76,15 @@ public final class HandbagClientConfig {
         @Config.RangeDouble(min = 0.0D, max = 10.0D)
         @Config.LangKey(RENDERING_PREFIX + ".core_rotation_speed")
         public double coreRotationSpeed = 1.0D;
+
+        @Config.Comment("Whether to render the contents overlay above the experience bar")
+        @Config.LangKey(RENDERING_PREFIX + ".render_contents_overlay")
+        public boolean renderContentsOverlay = true;
+
+        @Config.Comment("Vertical gap in pixels between the contents overlay and the experience bar")
+        @Config.RangeInt(min = 0, max = 256)
+        @Config.LangKey(RENDERING_PREFIX + ".content_overlay_y_offset")
+        public int contentOverlayYOffset = 5;
     }
 
     @Mod.EventBusSubscriber(modid = Tags.MODID)
