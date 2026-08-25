@@ -8,7 +8,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
-## [1.0.2] - 2026-08-21
+## [1.1.0] - 2026-08-21
 ### Added
 - Add contents overlay rendering above the experience bar, to show the contents of the currently selected configuration and adjacent configurations.
 
