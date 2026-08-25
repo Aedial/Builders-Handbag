@@ -1,6 +1,6 @@
 # Builder's Handbag
 
-Builder's Handbag is a Minecraft 1.12.2 building tool for easily switching between up to 36 decoration configurations, in a similar way to a dank/null. Each configuration has an internal inventory, drawing from the player's inventory or a linked AE2 network when the selected configuration runs out of materials.
+A Minecraft 1.12.2 building tool for easily switching between up to 36 decoration configurations, in a similar way to a dank/null. Each configuration has an internal inventory, drawing from the player's inventory or a linked AE2 network when it runs out of materials.
 
 ## Optional integrations
 
@@ -19,3 +19,4 @@ Add the mod to both client and server.
 This project is licensed under the [MIT License](LICENSE).
 
 ## Credits
+- Chinese translation: @ZHAY10086
