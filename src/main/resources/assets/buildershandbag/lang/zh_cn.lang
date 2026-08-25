@@ -18,6 +18,10 @@ buildershandbag.config.client.rendering.core_edge_color=核心边颜色
 buildershandbag.config.client.rendering.core_edge_color.tooltip=默认二十面体核心的边颜色，格式为 #AARRGGBB
 buildershandbag.config.client.rendering.core_rotation_speed=核心旋转速度
 buildershandbag.config.client.rendering.core_rotation_speed.tooltip=核心旋转速度乘数
+buildershandbag.config.client.rendering.render_contents_overlay=渲染内容物叠加层
+buildershandbag.config.client.rendering.render_contents_overlay.tooltip=是否在经验条上方渲染内容物叠加层
+buildershandbag.config.client.rendering.content_overlay_y_offset=内容物叠加层Y轴偏移
+buildershandbag.config.client.rendering.content_overlay_y_offset.tooltip=内容物叠加层与经验条之间的垂直间距（以像素为单位）
 
 buildershandbag.config.server=服务端
 buildershandbag.config.server.tooltip=服务端配置
@@ -38,7 +42,7 @@ tooltip.buildershandbag.ae2_disabled=§7AE2补货已禁用
 tooltip.buildershandbag.no_integrations=§c无模组联动。§e请确保已安装兼容模组，并在配置中启用联动。
 tooltip.buildershandbag.no_configurations=§e未存储配置。§b右键点击§e/§bShift+右键点击§e来添加一个
 tooltip.buildershandbag.configurations=配置：§a%s/%s
-tooltip.buildershandbag.selected=当前选择：§b%s§7（§a%s§7 储量）。§b右键点击§7放置方块
+tooltip.buildershandbag.selected=当前选择：§b%s§7（§a%s§7 储量）。§b右键点击§7放置方块，§bShift+滚轮§7更改所选方块
 tooltip.buildershandbag.no_selection=§e未选择配置。§b潜行滚动滚轮§e来选择一个
 
 # Messages
@@ -55,7 +59,7 @@ message.buildershandbag.added=配置已添加。
 gui.buildershandbag.page.previous=上一配置页
 gui.buildershandbag.page.next=下一配置页
 gui.buildershandbag.configuration.stored=§7已存储：§a%s§7 x §b%s
-gui.buildershandbag.configuration.select=§b左键点击§7：选中以移动
+gui.buildershandbag.configuration.select=§b左键点击§7：选中以重新排序（仅影响顺序）
 gui.buildershandbag.configuration.deselect=§b左键点击§7：取消选中
 gui.buildershandbag.configuration.remove=§b右键点击§7：移除并返还已存储的方块
 gui.buildershandbag.configuration.move=§b方向键§7：在列表中移动
