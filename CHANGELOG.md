@@ -8,6 +8,12 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
+## [1.1.1] - 2026-09-14
+### Fixed
+- Optimize the rendering of the handbag, to reduce the unnecessary load on the client.
+- Fix ArchitectureCraft blocks messing with smooth lighting, when currently selected.
+
+
 ## [1.1.0] - 2026-08-21
 ### Added
 - Add contents overlay rendering above the experience bar, to show the contents of the currently selected configuration and adjacent configurations.

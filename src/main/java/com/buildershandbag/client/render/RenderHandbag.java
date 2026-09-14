@@ -6,9 +6,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -29,7 +32,9 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.fml.common.Optional;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -37,7 +42,6 @@ import com.buildershandbag.Tags;
 import com.buildershandbag.config.HandbagClientConfig;
 import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.storage.HandbagConfiguration;
-import com.buildershandbag.storage.HandbagStorage;
 import com.buildershandbag.tile.TileHandbag;
 
 
@@ -69,6 +73,14 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         ICOSIDODECAHEDRON_FACES);
     /** Scale factor between a block's side and its diagonal */
     private static final float BLOCK_CORE_DIAGONAL_SCALE = (float) (1.0D / Math.sqrt(2.0D));
+
+    /**
+     * Previews are derived exclusively from immutable configurations. Weak
+     * keys release them as soon as a tile or item renderer replaces its
+     * configuration, while model baking clears stale model references.
+     */
+    private final Map<HandbagConfiguration, BlockcrafteryPreviewModel.Preview> blockcrafteryPreviews =
+        new WeakHashMap<>();
 
     @Override
     public void render(@Nonnull TileHandbag tile, double x, double y, double z, float partialTicks,
@@ -136,9 +148,9 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         }
     }
 
+    @Nullable
     private HandbagConfiguration getSelectedConfiguration(TileHandbag tile) {
-        ItemStack handbag = tile.getHandbagStack();
-        return HandbagStorage.getConfiguration(handbag, HandbagStorage.getSelected(handbag));
+        return tile.getSelectedConfiguration();
     }
 
     private float getAnimationTicks(TileHandbag tile, float partialTicks) {
@@ -227,13 +239,13 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
             return false;
         }
 
-        return renderBlockcrafteryConfiguration(configuration.getResult(), configuration.getMaterial());
+        return renderBlockcrafteryPreview(configuration);
     }
 
     @Optional.Method(modid = HandbagIntegration.BLOCKCRAFTERY_MODID)
-    private boolean renderBlockcrafteryConfiguration(ItemStack frame, ItemStack material) {
+    private boolean renderBlockcrafteryPreview(HandbagConfiguration configuration) {
         RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
-        BlockcrafteryPreviewModel.Preview preview = BlockcrafteryPreviewModel.create(itemRenderer, frame, material);
+        BlockcrafteryPreviewModel.Preview preview = getBlockcrafteryPreview(itemRenderer, configuration);
         if (preview == null) return false;
 
         TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
@@ -250,6 +262,24 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         }
 
         return true;
+    }
+
+    @Nullable
+    private BlockcrafteryPreviewModel.Preview getBlockcrafteryPreview(RenderItem itemRenderer,
+            HandbagConfiguration configuration) {
+        // Configuration objects are immutable and replaced whenever the tile
+        // or item renderer receives new handbag data.
+        if (blockcrafteryPreviews.containsKey(configuration)) return blockcrafteryPreviews.get(configuration);
+
+        BlockcrafteryPreviewModel.Preview preview = BlockcrafteryPreviewModel.create(
+            itemRenderer, configuration.getResult(), configuration.getMaterial());
+        blockcrafteryPreviews.put(configuration, preview);
+        return preview;
+    }
+
+    @SubscribeEvent
+    public void onModelBake(ModelBakeEvent event) {
+        blockcrafteryPreviews.clear();
     }
 
     /**
@@ -602,6 +632,9 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
      */
     private static final class RenderState {
 
+        /** Allocate the color buffer once for reading the current color. */
+        private static final FloatBuffer COLOR_BUFFER = BufferUtils.createFloatBuffer(16);
+
         private final boolean texture2d;
         private final boolean blend;
         private final boolean cull;
@@ -611,6 +644,7 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         private final boolean rescaleNormal;
         private final boolean normalize;
         private final boolean depthMask;
+        private final int shadeModel;
         private final int texture;
         private final int blendSourceRgb;
         private final int blendDestinationRgb;
@@ -631,18 +665,19 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
             rescaleNormal = GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL);
             normalize = GL11.glIsEnabled(GL11.GL_NORMALIZE);
             depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+            shadeModel = GL11.glGetInteger(GL11.GL_SHADE_MODEL);
             texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
             blendSourceRgb = GL11.glGetInteger(GL14.GL_BLEND_SRC_RGB);
             blendDestinationRgb = GL11.glGetInteger(GL14.GL_BLEND_DST_RGB);
             blendSourceAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA);
             blendDestinationAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
 
-            FloatBuffer color = BufferUtils.createFloatBuffer(16);
-            GL11.glGetFloat(GL11.GL_CURRENT_COLOR, color);
-            red = color.get(0);
-            green = color.get(1);
-            blue = color.get(2);
-            alpha = color.get(3);
+            COLOR_BUFFER.clear();
+            GL11.glGetFloat(GL11.GL_CURRENT_COLOR, COLOR_BUFFER);
+            red = COLOR_BUFFER.get(0);
+            green = COLOR_BUFFER.get(1);
+            blue = COLOR_BUFFER.get(2);
+            alpha = COLOR_BUFFER.get(3);
         }
 
         private static RenderState capture() {
@@ -658,6 +693,7 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
             setEnabled(alphaTest, State.ALPHA_TEST);
             setEnabled(rescaleNormal, State.RESCALE_NORMAL);
             setEnabled(normalize, State.NORMALIZE);
+            GlStateManager.shadeModel(shadeModel);
             GlStateManager.depthMask(depthMask);
             GlStateManager.tryBlendFuncSeparate(
                 blendSourceRgb, blendDestinationRgb, blendSourceAlpha, blendDestinationAlpha);

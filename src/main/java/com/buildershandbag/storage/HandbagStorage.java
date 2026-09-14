@@ -62,6 +62,23 @@ public final class HandbagStorage {
         return selected >= 0 && selected < getConfigurations(handbag).size() ? selected : -1;
     }
 
+    /**
+     * Reads the selected configuration while deserializing the configuration
+     * list at most once. Renderers use this when a handbag stack changes, not
+     * once per frame.
+     */
+    @Nullable
+    public static HandbagConfiguration getSelectedConfiguration(ItemStack handbag) {
+        NBTTagCompound root = getRoot(handbag, false);
+        if (root == null || !root.hasKey(NBT_SELECTED, Constants.NBT.TAG_INT)) return null;
+
+        int selected = root.getInteger(NBT_SELECTED);
+        if (selected < 0) return null;
+
+        List<HandbagConfiguration> configurations = getConfigurations(handbag);
+        return selected < configurations.size() ? configurations.get(selected) : null;
+    }
+
     public static void setSelected(ItemStack handbag, int index) {
         NBTTagCompound root = getRoot(handbag, true);
         if (root == null) return;

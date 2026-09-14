@@ -1,6 +1,7 @@
 package com.buildershandbag.tile;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -8,6 +9,9 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.Constants;
+
+import com.buildershandbag.storage.HandbagConfiguration;
+import com.buildershandbag.storage.HandbagStorage;
 
 
 /**
@@ -19,15 +23,30 @@ public class TileHandbag extends TileEntity {
     private static final String NBT_HANDBAG = "Handbag";
 
     private ItemStack handbag = ItemStack.EMPTY;
+    @Nullable
+    private HandbagConfiguration selectedConfiguration;
 
     @Nonnull
     public ItemStack getHandbagStack() {
         return handbag.copy();
     }
 
+    /**
+     * Immutable render data, refreshed when the stored handbag stack changes.
+     * This keeps NBT decoding and ItemStack copies off the TESR hot path.
+     */
+    @Nullable
+    public HandbagConfiguration getSelectedConfiguration() {
+        return selectedConfiguration;
+    }
+
     public void setHandbagStack(ItemStack stack) {
-        handbag = stack == null ? ItemStack.EMPTY : stack.copy();
-        if (!handbag.isEmpty()) handbag.setCount(1);
+        ItemStack replacement = stack == null ? ItemStack.EMPTY : stack;
+        if (!hasSameRenderData(handbag, replacement)) {
+            handbag = replacement.copy();
+            if (!handbag.isEmpty()) handbag.setCount(1);
+            refreshSelectedConfiguration();
+        }
 
         markDirty();
         if (world != null && !world.isRemote) {
@@ -42,6 +61,7 @@ public class TileHandbag extends TileEntity {
             ? new ItemStack(compound.getCompoundTag(NBT_HANDBAG))
             : ItemStack.EMPTY;
         if (!handbag.isEmpty()) handbag.setCount(1);
+        refreshSelectedConfiguration();
     }
 
     @Override
@@ -71,5 +91,15 @@ public class TileHandbag extends TileEntity {
     @Override
     public void handleUpdateTag(@Nonnull NBTTagCompound tag) {
         readFromNBT(tag);
+    }
+
+    private void refreshSelectedConfiguration() {
+        selectedConfiguration = HandbagStorage.getSelectedConfiguration(handbag);
+    }
+
+    private static boolean hasSameRenderData(ItemStack first, ItemStack second) {
+        if (first.isEmpty() || second.isEmpty()) return first.isEmpty() && second.isEmpty();
+
+        return ItemStack.areItemsEqual(first, second) && ItemStack.areItemStackTagsEqual(first, second);
     }
 }
