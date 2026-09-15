@@ -192,7 +192,7 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         if (tile.hasWorld()) return tile.getWorld().getTotalWorldTime() + partialTicks;
 
         Minecraft minecraft = Minecraft.getMinecraft();
-        if (minecraft.world != null) return minecraft.world.getTotalWorldTime() + partialTicks;
+        if (minecraft.world != null) return minecraft.world.getTotalWorldTime() + minecraft.getRenderPartialTicks();
 
         return Minecraft.getSystemTime() / 50.0F;
     }

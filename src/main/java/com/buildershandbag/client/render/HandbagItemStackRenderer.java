@@ -2,6 +2,7 @@ package com.buildershandbag.client.render;
 
 import javax.annotation.Nonnull;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.item.ItemStack;
@@ -19,6 +20,11 @@ import com.buildershandbag.tile.TileHandbag;
 public final class HandbagItemStackRenderer extends TileEntityItemStackRenderer {
 
     private static final TileHandbag ITEM_TILE = new TileHandbag();
+
+    @Override
+    public void renderByItem(@Nonnull ItemStack stack) {
+        renderByItem(stack, Minecraft.getMinecraft().getRenderPartialTicks());
+    }
 
     @Override
     public void renderByItem(@Nonnull ItemStack stack, float partialTicks) {
