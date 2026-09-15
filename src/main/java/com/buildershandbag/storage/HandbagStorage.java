@@ -204,7 +204,7 @@ public final class HandbagStorage {
     private static HandbagConfiguration readConfiguration(NBTTagCompound serialized) {
         ItemStack material = new ItemStack(serialized.getCompoundTag(NBT_MATERIAL));
         ItemStack result = new ItemStack(serialized.getCompoundTag(NBT_RESULT));
-        HandbagIntegration integration = HandbagIntegration.fromOrdinal(serialized.getByte(NBT_INTEGRATION));
+        HandbagIntegration integration = HandbagIntegration.fromModId(serialized.getString(NBT_INTEGRATION));
         if (material.isEmpty() || result.isEmpty() || integration == null) return null;
 
         // TODO: Do we disable configurations that are disabled in config?
@@ -234,7 +234,7 @@ public final class HandbagStorage {
             NBTTagCompound tag = new NBTTagCompound();
             tag.setTag(NBT_MATERIAL, configuration.getMaterial().writeToNBT(new NBTTagCompound()));
             tag.setTag(NBT_RESULT, configuration.getResult().writeToNBT(new NBTTagCompound()));
-            tag.setByte(NBT_INTEGRATION, (byte) configuration.getIntegration().ordinal());
+            tag.setString(NBT_INTEGRATION, configuration.getIntegration().getModID());
             tag.setInteger(NBT_MATERIAL_COUNT, Math.min(MATERIAL_CAPACITY, configuration.getMaterialCount()));
             serialized.appendTag(tag);
         }

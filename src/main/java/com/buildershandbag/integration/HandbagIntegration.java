@@ -41,4 +41,14 @@ public enum HandbagIntegration {
         HandbagIntegration[] values = values();
         return ordinal >= 0 && ordinal < values.length ? values[ordinal] : null;
     }
+
+    public static HandbagIntegration fromModId(String modid) {
+        if (modid == null) return null;
+
+        for (HandbagIntegration integration : values()) {
+            if (integration.modid.equals(modid)) return integration;
+        }
+
+        return null;
+    }
 }

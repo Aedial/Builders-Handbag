@@ -25,6 +25,6 @@ public final class HandbagItemStackRenderer extends TileEntityItemStackRenderer 
         if (stack.isEmpty()) return;
 
         ITEM_TILE.setHandbagStack(stack);
-        TileEntityRendererDispatcher.instance.render(ITEM_TILE, 0.0D, 0.0D, 0.0D, 0.0F, partialTicks);
+        TileEntityRendererDispatcher.instance.render(ITEM_TILE, 0.0D, 0.0D, 0.0D, partialTicks);
     }
 }

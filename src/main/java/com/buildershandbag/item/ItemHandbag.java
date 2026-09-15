@@ -207,7 +207,8 @@ public class ItemHandbag extends ItemBlock {
             HandbagConfiguration configuration) {
         if (configuration.getMaterialCount() > 0) return true;
 
-        if (Loader.isModLoaded(AE2_MODID) && HandbagServerConfig.integrations.enableAe2Refill) {
+        if (!player.world.isRemote && Loader.isModLoaded(AE2_MODID)
+                && HandbagServerConfig.integrations.enableAe2Refill) {
             int requested = HandbagStorage.MATERIAL_CAPACITY - configuration.getMaterialCount();
             int pulled = pullMaterialFromNetwork(player, handbag, configuration.getMaterial(), requested);
             if (pulled > 0) {
@@ -265,8 +266,9 @@ public class ItemHandbag extends ItemBlock {
         ItemStack handbag = player.getHeldItem(hand);
         if (handbag.getItem() != ItemRegistry.HANDBAG) return;
 
+        int inventorySlot = hand == EnumHand.MAIN_HAND ? player.inventory.currentItem : -1;
         HandbagNetwork.INSTANCE.sendTo(
-            new PacketHandbagSync(hand, HandbagStorage.copyData(handbag)),
+            new PacketHandbagSync(hand, inventorySlot, HandbagStorage.copyData(handbag)),
             player);
     }
 

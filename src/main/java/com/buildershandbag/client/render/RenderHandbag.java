@@ -47,8 +47,9 @@ import com.buildershandbag.tile.TileHandbag;
 
 /**
  * Renders the placed handbag as a one-pixel wire-frame cube around a rotating
- * configuration. State touched by the renderer is captured and restored so a
- * translucent default core cannot affect later tile/entity renders.
+ * configuration. Item and other no-world contexts still capture and restore
+ * their exact GL state, while the world TESR resets to the block-entity pass
+ * baseline to avoid per-frame driver stalls.
  */
 @SideOnly(Side.CLIENT)
 public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
@@ -85,18 +86,52 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
     @Override
     public void render(@Nonnull TileHandbag tile, double x, double y, double z, float partialTicks,
                        int destroyStage, float alpha) {
+        if (tile.hasWorld()) {
+            GlStateManager.pushMatrix();
+            try {
+                renderHandbag(tile, x, y, z, partialTicks);
+            } finally {
+                GlStateManager.popMatrix();
+                restoreWorldRenderState();
+            }
+
+            return;
+        }
+
         RenderState state = RenderState.capture();
         GlStateManager.pushMatrix();
         GlStateManager.pushAttrib();
         try {
-            GlStateManager.translate(x, y, z);
-            renderFrame();
-            renderCore(tile, partialTicks);
+            renderHandbag(tile, x, y, z, partialTicks);
         } finally {
             GlStateManager.popAttrib();
             GlStateManager.popMatrix();
             state.restore();
         }
+    }
+
+    private void renderHandbag(TileHandbag tile, double x, double y, double z, float partialTicks) {
+        GlStateManager.translate(x, y, z);
+        renderFrame();
+        renderCore(tile, partialTicks);
+    }
+
+    private void restoreWorldRenderState() {
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableDepth();
+        GlStateManager.depthMask(true);
+        GlStateManager.enableCull();
+        GlStateManager.enableAlpha();
+        GlStateManager.disableBlend();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.disableNormalize();
+        GlStateManager.tryBlendFuncSeparate(
+            GlStateManager.SourceFactor.SRC_ALPHA,
+            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+            GlStateManager.SourceFactor.ONE,
+            GlStateManager.DestFactor.ZERO);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderHelper.enableStandardItemLighting();
     }
 
     private void renderFrame() {
@@ -154,9 +189,12 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
     }
 
     private float getAnimationTicks(TileHandbag tile, float partialTicks) {
-        return tile.hasWorld()
-            ? tile.getWorld().getTotalWorldTime() + partialTicks
-            : Minecraft.getSystemTime() / 50.0F;
+        if (tile.hasWorld()) return tile.getWorld().getTotalWorldTime() + partialTicks;
+
+        Minecraft minecraft = Minecraft.getMinecraft();
+        if (minecraft.world != null) return minecraft.world.getTotalWorldTime() + partialTicks;
+
+        return Minecraft.getSystemTime() / 50.0F;
     }
 
     private static float wrapDegrees(float angle) {

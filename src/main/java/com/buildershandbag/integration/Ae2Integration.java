@@ -21,7 +21,7 @@ import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.IConfigManager;
 import appeng.core.localization.GuiText;
 import appeng.helpers.WirelessTerminalGuiObject;
-import appeng.me.helpers.BaseActionSource;
+import appeng.me.helpers.PlayerSource;
 import appeng.util.ConfigManager;
 import appeng.util.Platform;
 import appeng.util.item.AEItemStack;
@@ -70,7 +70,7 @@ public final class Ae2Integration implements IWirelessTermHandler {
 
         IEnergyGrid energy = wireless.getActionableNode().getGrid().getCache(IEnergyGrid.class);
         IAEItemStack extracted = Platform.poweredExtraction(
-            energy, monitor, request, new BaseActionSource(), Actionable.MODULATE);
+            energy, monitor, request, new PlayerSource(player, wireless), Actionable.MODULATE);
 
         return extracted == null ? 0 : (int) Math.min(requestedAmount, extracted.getStackSize());
     }
