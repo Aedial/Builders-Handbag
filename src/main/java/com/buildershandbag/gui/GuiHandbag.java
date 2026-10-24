@@ -484,7 +484,7 @@ public class GuiHandbag extends GuiContainer {
         EntityPlayer player = Minecraft.getMinecraft().player;
         if (player == null || !player.inventory.getItemStack().isEmpty()) return;
 
-        Slot slot = getSlotAtPosition(mouseX, mouseY);
+        Slot slot = getSlotUnderMouse();
         if (slot == null || !slot.getHasStack()) return;
 
         List<String> lines = getItemTooltip(slot.getStack());

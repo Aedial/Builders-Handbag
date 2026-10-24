@@ -5,6 +5,8 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 
+import com.buildershandbag.Handbag;
+import com.buildershandbag.config.HandbagServerConfig;
 import com.buildershandbag.gui.GuiHandbag;
 import com.buildershandbag.item.ItemRegistry;
 
@@ -16,12 +18,19 @@ public class GuiHandler implements IGuiHandler {
 
     public static final int GUI_HANDBAG = 0;
 
+    private static boolean loggedNoIntegrations;
+
     @Override
     public Object getServerGuiElement(int id, EntityPlayer player, World world, int x, int y, int z) {
         if (id != GUI_HANDBAG) return null;
 
         EnumHand hand = x == EnumHand.OFF_HAND.ordinal() ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND;
         if (player.getHeldItem(hand).getItem() != ItemRegistry.HANDBAG) return null;
+
+        if (!loggedNoIntegrations && HandbagServerConfig.integrations.getEnabledIntegrations().isEmpty()) {
+            loggedNoIntegrations = true;
+            Handbag.LOGGER.error("No material integrations are available. The handbag will not do anything");
+        }
 
         return new ContainerHandbag(player.inventory, hand);
     }
