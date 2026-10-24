@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.lwjgl.input.Keyboard;
 
 import net.minecraft.client.Minecraft;
@@ -271,11 +273,17 @@ public class GuiHandbag extends GuiContainer {
             int x = CONFIGURATION_X + index % CONFIGURATION_COLUMNS * SLOT_SIZE;
             int y = CONFIGURATION_Y + index / CONFIGURATION_COLUMNS * SLOT_SIZE;
             String count = configuration.getMaterialCount() > 0 ? String.valueOf(configuration.getMaterialCount()) : "";
+            boolean available = configuration.isAvailable();
+
+            if (!available) {
+                Gui.drawRect(x + 1, y + 1, x + SLOT_SIZE - 1, y + SLOT_SIZE - 1, 0x66FF3333);
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            }
 
             renderStack(
-                configuration.getResult(),
+                available ? configuration.getResult() : configuration.getMaterial(),
                 configuration.getMaterial(),
-                configuration.getIntegration(),
+                available ? configuration.getIntegration() : null,
                 x + 1,
                 y + 1,
                 count);
@@ -380,8 +388,8 @@ public class GuiHandbag extends GuiContainer {
         return player == null ? ItemStack.EMPTY : player.getHeldItem(container.getHand());
     }
 
-    private void renderStack(ItemStack stack, ItemStack material, HandbagIntegration integration, int x, int y,
-            String overlay) {
+    private void renderStack(ItemStack stack, ItemStack material, @Nullable HandbagIntegration integration,
+            int x, int y, String overlay) {
         GlStateManager.pushMatrix();
         RenderHelper.enableGUIStandardItemLighting();
 
@@ -394,8 +402,8 @@ public class GuiHandbag extends GuiContainer {
         GlStateManager.popMatrix();
     }
 
-    private boolean renderBlockcrafteryPreview(ItemStack frame, ItemStack material, HandbagIntegration integration,
-            int x, int y) {
+    private boolean renderBlockcrafteryPreview(ItemStack frame, ItemStack material,
+            @Nullable HandbagIntegration integration, int x, int y) {
         if (integration != HandbagIntegration.BLOCKCRAFTERY || !HandbagIntegration.BLOCKCRAFTERY.isModLoaded()) return false;
 
         return renderBlockcrafteryPreview(frame, material, x, y);
@@ -492,12 +500,29 @@ public class GuiHandbag extends GuiContainer {
         EntityPlayer player = Minecraft.getMinecraft().player;
         if (player == null) return;
 
-        List<String> lines = getItemTooltip(configuration.getResult());
+        ItemStack material = configuration.getMaterial();
+        boolean available = configuration.isAvailable();
+        List<String> lines = new ArrayList<>();
+        if (material.isEmpty()) {
+            lines.add(configuration.getMaterialData().getString("id"));
+        } else {
+            lines.addAll(getItemTooltip(available ? configuration.getResult() : material));
+        }
+
+        if (!available) {
+            lines.add(I18n.format("gui.buildershandbag.configuration.unavailable",
+                configuration.getIntegration().getTranslatedName()));
+        }
+
+        if (material.isEmpty()) {
+            lines.add(I18n.format("gui.buildershandbag.configuration.material_unavailable"));
+        }
+
         lines.add("");
         lines.add(I18n.format(
             "gui.buildershandbag.configuration.stored",
             configuration.getMaterialCount(),
-            configuration.getMaterial().getDisplayName()));
+            material.isEmpty() ? configuration.getMaterialData().getString("id") : material.getDisplayName()));
 
         if (movingConfiguration == index) {
             lines.add(I18n.format("gui.buildershandbag.configuration.deselect"));

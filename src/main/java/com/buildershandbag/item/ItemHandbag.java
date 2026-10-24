@@ -133,15 +133,20 @@ public class ItemHandbag extends ItemBlock {
         int selected = HandbagStorage.getSelected(handbag);
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, selected);
         if (configuration == null) {
-                String messageKey = HandbagStorage.getConfigurations(handbag).isEmpty()
-                    ? "message.buildershandbag.no_configuration"
-                    : "message.buildershandbag.no_selection";
-                HandbagMessages.error(player, messageKey);
-                return EnumActionResult.FAIL;
+            List<HandbagConfiguration> configurations = HandbagStorage.getConfigurations(handbag);
+            String messageKey = "message.buildershandbag.no_selection";
+            if (configurations.isEmpty()) {
+                messageKey = "message.buildershandbag.no_configuration";
+            } else if (configurations.stream().noneMatch(HandbagConfiguration::isAvailable)) {
+                messageKey = "message.buildershandbag.no_available_configuration";
+            }
+
+            HandbagMessages.error(player, messageKey);
+            return EnumActionResult.FAIL;
         }
 
         ItemStack resultStack = configuration.getResult();
-        if (!(resultStack.getItem() instanceof ItemBlock)) {
+        if (!configuration.isAvailable() || !(resultStack.getItem() instanceof ItemBlock)) {
             HandbagMessages.error(player, "message.buildershandbag.invalid_configuration");
             return EnumActionResult.FAIL;
         }
@@ -309,6 +314,8 @@ public class ItemHandbag extends ItemBlock {
                 "tooltip.buildershandbag.selected",
                 configuration.getResult().getDisplayName(),
                 configuration.getMaterialCount()));
+        } else if (configurations.stream().noneMatch(HandbagConfiguration::isAvailable)) {
+            tooltip.add(I18n.format("tooltip.buildershandbag.no_available_configurations"));
         } else {
             // may not have selected on first configuration
             tooltip.add(I18n.format("tooltip.buildershandbag.no_selection"));

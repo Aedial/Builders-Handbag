@@ -1,9 +1,12 @@
 package com.buildershandbag.integration;
 
 import net.minecraft.client.resources.I18n;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import com.buildershandbag.config.HandbagServerConfig;
 
 
 /**
@@ -18,6 +21,8 @@ public enum HandbagIntegration {
     public static final String ARCHITECTURECRAFT_MODID = "architecturecraft";
     public static final String BLOCKCRAFTERY_MODID = "blockcraftery";
 
+    private static int clientEnabledIntegrations;
+
     private final String modid;
 
     private HandbagIntegration(String modid) {
@@ -30,6 +35,19 @@ public enum HandbagIntegration {
 
     public boolean isModLoaded() {
         return Loader.isModLoaded(modid);
+    }
+
+    public boolean isEnabled() {
+        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+            return HandbagServerConfig.integrations.isIntegrationEnabled(this);
+        }
+
+        return isModLoaded() && (clientEnabledIntegrations & (1 << ordinal())) != 0;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void setClientEnabledIntegrations(int enabledIntegrations) {
+        clientEnabledIntegrations = enabledIntegrations;
     }
 
     @SideOnly(Side.CLIENT)

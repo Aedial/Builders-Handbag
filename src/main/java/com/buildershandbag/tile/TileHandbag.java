@@ -37,7 +37,7 @@ public class TileHandbag extends TileEntity {
      */
     @Nullable
     public HandbagConfiguration getSelectedConfiguration() {
-        return selectedConfiguration;
+        return selectedConfiguration != null && selectedConfiguration.isAvailable() ? selectedConfiguration : null;
     }
 
     public void setHandbagStack(ItemStack stack) {

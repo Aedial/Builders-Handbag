@@ -55,17 +55,25 @@ public final class HandbagStorage {
     }
 
     public static int getSelected(ItemStack handbag) {
+        int selected = getSavedSelected(handbag);
+        if (selected < 0) return -1;
+
+        HandbagConfiguration configuration = getConfiguration(handbag, selected);
+        return configuration != null && configuration.isAvailable() ? selected : -1;
+    }
+
+    private static int getSavedSelected(ItemStack handbag) {
         NBTTagCompound root = getRoot(handbag, false);
         if (root == null || !root.hasKey(NBT_SELECTED, Constants.NBT.TAG_INT)) return -1;
 
-        int selected = root.getInteger(NBT_SELECTED);
-        return selected >= 0 && selected < getConfigurations(handbag).size() ? selected : -1;
+        return root.getInteger(NBT_SELECTED);
     }
 
     /**
      * Reads the selected configuration while deserializing the configuration
      * list at most once. Renderers use this when a handbag stack changes, not
      * once per frame.
+     * Retains unavailable entries for the render cache to check current settings.
      */
     @Nullable
     public static HandbagConfiguration getSelectedConfiguration(ItemStack handbag) {
@@ -88,7 +96,7 @@ public final class HandbagStorage {
     }
 
     public static boolean addConfiguration(ItemStack handbag, HandbagConfiguration configuration) {
-        if (configuration == null || configuration.getMaterial().isEmpty() || configuration.getResult().isEmpty()) return false;
+        if (configuration == null || !configuration.isAvailable()) return false;
 
         List<HandbagConfiguration> configurations = new ArrayList<>(getConfigurations(handbag));
         if (configurations.size() >= CONFIGURATION_COUNT) return false;
@@ -105,7 +113,7 @@ public final class HandbagStorage {
         if (index < 0 || index >= configurations.size()) return null;
 
         HandbagConfiguration removed = configurations.remove(index);
-        int selected = getSelected(handbag);
+        int selected = getSavedSelected(handbag);
         if (selected == index) {
             selected = -1;
         } else if (selected > index) {
@@ -129,7 +137,7 @@ public final class HandbagStorage {
         int destination = Math.max(0, Math.min(target, configurations.size() - 1));
         if (from == destination) return from;
 
-        int selected = getSelected(handbag);
+        int selected = getSavedSelected(handbag);
         HandbagConfiguration moved = configurations.remove(from);
         configurations.add(destination, moved);
         writeConfigurations(handbag, configurations);
@@ -147,17 +155,28 @@ public final class HandbagStorage {
     }
 
     public static int cycleSelected(ItemStack handbag, boolean forward) {
-        int size = getConfigurations(handbag).size();
+        List<HandbagConfiguration> configurations = getConfigurations(handbag);
+        int size = configurations.size();
         if (size == 0) {
             setSelected(handbag, -1);
             return -1;
         }
 
-        int selected = getSelected(handbag);
-        int next = selected < 0 ? 0 : (selected + (forward ? 1 : size - 1)) % size;
-        setSelected(handbag, next);
+        int selected = getSavedSelected(handbag);
+        if (selected >= size) selected = -1;
 
-        return next;
+        int next = selected < 0 ? 0 : (selected + (forward ? 1 : size - 1)) % size;
+        for (int checked = 0; checked < size; checked++) {
+            if (configurations.get(next).isAvailable()) {
+                setSelected(handbag, next);
+                return next;
+            }
+
+            next = (next + (forward ? 1 : size - 1)) % size;
+        }
+
+        setSelected(handbag, -1);
+        return -1;
     }
 
     public static int insertMaterial(ItemStack handbag, int index, ItemStack material, boolean simulate) {
@@ -173,7 +192,8 @@ public final class HandbagStorage {
 
     public static boolean consumeMaterial(ItemStack handbag, int index) {
         HandbagConfiguration configuration = getConfiguration(handbag, index);
-        if (configuration == null || configuration.getMaterialCount() <= 0) return false;
+        if (configuration == null || !configuration.isAvailable()
+                || configuration.getMaterialCount() <= 0) return false;
 
         replaceConfiguration(handbag, index, configuration.withMaterialCount(configuration.getMaterialCount() - 1));
         return true;
@@ -202,17 +222,12 @@ public final class HandbagStorage {
 
     @Nullable
     private static HandbagConfiguration readConfiguration(NBTTagCompound serialized) {
-        ItemStack material = new ItemStack(serialized.getCompoundTag(NBT_MATERIAL));
-        ItemStack result = new ItemStack(serialized.getCompoundTag(NBT_RESULT));
         HandbagIntegration integration = HandbagIntegration.fromModId(serialized.getString(NBT_INTEGRATION));
-        if (material.isEmpty() || result.isEmpty() || integration == null) return null;
-
-        // TODO: Do we disable configurations that are disabled in config?
-        //       They are supposed to not be "valid"
+        if (integration == null) return null;
 
         return new HandbagConfiguration(
-            material,
-            result,
+            serialized.getCompoundTag(NBT_MATERIAL),
+            serialized.getCompoundTag(NBT_RESULT),
             integration,
             Math.min(MATERIAL_CAPACITY, Math.max(0, serialized.getInteger(NBT_MATERIAL_COUNT))));
     }
@@ -232,8 +247,8 @@ public final class HandbagStorage {
         NBTTagList serialized = new NBTTagList();
         for (HandbagConfiguration configuration : configurations) {
             NBTTagCompound tag = new NBTTagCompound();
-            tag.setTag(NBT_MATERIAL, configuration.getMaterial().writeToNBT(new NBTTagCompound()));
-            tag.setTag(NBT_RESULT, configuration.getResult().writeToNBT(new NBTTagCompound()));
+            tag.setTag(NBT_MATERIAL, configuration.getMaterialData());
+            tag.setTag(NBT_RESULT, configuration.getResultData());
             tag.setString(NBT_INTEGRATION, configuration.getIntegration().getModID());
             tag.setInteger(NBT_MATERIAL_COUNT, Math.min(MATERIAL_CAPACITY, configuration.getMaterialCount()));
             serialized.appendTag(tag);

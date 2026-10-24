@@ -3,6 +3,7 @@ package com.buildershandbag.network;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -11,10 +12,13 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 import com.buildershandbag.Tags;
+import com.buildershandbag.config.HandbagServerConfig;
+import com.buildershandbag.integration.HandbagIntegration;
 
 
 /**
@@ -26,6 +30,7 @@ public final class HandbagNetwork {
 
     public static SimpleNetworkWrapper INSTANCE;
     private static final List<PendingTileSync> PENDING_TILE_SYNCS = new ArrayList<>();
+    private static int lastEnabledIntegrations = -1;
 
     private HandbagNetwork() {
     }
@@ -52,6 +57,28 @@ public final class HandbagNetwork {
 
         // Server -> client: applies placed tile data and refreshes its rendered chunk.
         INSTANCE.registerMessage(PacketBlockTileSync.Handler.class, PacketBlockTileSync.class, packetId++, Side.CLIENT);
+
+        // Server -> client: supplies enabled integrations for selection and rendering
+        INSTANCE.registerMessage(
+            PacketHandbagIntegrationsSync.Handler.class, PacketHandbagIntegrationsSync.class, packetId++, Side.CLIENT);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.player instanceof EntityPlayerMP)) return;
+
+        INSTANCE.sendTo(new PacketHandbagIntegrationsSync(getEnabledIntegrationMask()), (EntityPlayerMP) event.player);
+    }
+
+    private static int getEnabledIntegrationMask() {
+        int enabledIntegrations = 0;
+        for (HandbagIntegration integration : HandbagIntegration.values()) {
+            if (HandbagServerConfig.integrations.isIntegrationEnabled(integration)) {
+                enabledIntegrations |= 1 << integration.ordinal();
+            }
+        }
+
+        return enabledIntegrations;
     }
 
     /**
@@ -70,7 +97,15 @@ public final class HandbagNetwork {
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || PENDING_TILE_SYNCS.isEmpty()) return;
+        if (event.phase != TickEvent.Phase.END) return;
+
+        int enabledIntegrations = getEnabledIntegrationMask();
+        if (enabledIntegrations != lastEnabledIntegrations) {
+            lastEnabledIntegrations = enabledIntegrations;
+            INSTANCE.sendToAll(new PacketHandbagIntegrationsSync(enabledIntegrations));
+        }
+
+        if (PENDING_TILE_SYNCS.isEmpty()) return;
 
         for (PendingTileSync sync : PENDING_TILE_SYNCS) {
             if (sync.world.getTileEntity(sync.position) != sync.tile) continue;

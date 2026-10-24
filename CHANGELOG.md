@@ -12,6 +12,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 ### Added
 
 ### Fixed
+- Allow removed integrations to still persist their configurations, so that material is not lost if the user temporarily removes a mod or wants to recover the blocks. The material will not be selectable and will render as "invalid" in the GUI, but will be restored once the integration is added back.
 
 ### Changed
 - Change the right-click behavior to open the GUI only on shift-click, instead of "whenever no block is placed". The old behavior can be restored in config.

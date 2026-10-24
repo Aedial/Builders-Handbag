@@ -70,7 +70,7 @@ public final class HandbagServerConfig {
         public List<HandbagIntegration> getEnabledIntegrations() {
             List<HandbagIntegration> enabledIntegrations = new ArrayList<>();
             for (HandbagIntegration integration : HandbagIntegration.values()) {
-                if (isIntegrationEnabled(integration)) enabledIntegrations.add(integration);
+                if (integration.isEnabled()) enabledIntegrations.add(integration);
             }
 
             return enabledIntegrations;

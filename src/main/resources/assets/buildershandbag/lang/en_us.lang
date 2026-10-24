@@ -46,11 +46,13 @@ tooltip.buildershandbag.no_configurations=§eNo configurations stored. §bRight-
 tooltip.buildershandbag.configurations=Configurations: §a%s/%s
 tooltip.buildershandbag.selected=Selected: §b%s§7 (§a%s§7 stored). §bRight-click§7 to place the block, §bShift + Scroll§7 to change selected block
 tooltip.buildershandbag.no_selection=§eNo configuration selected. §bSneak-scroll§e to select one
+tooltip.buildershandbag.no_available_configurations=No configurations available. Open the handbag to recover materials
 
 # Messages
 message.buildershandbag.no_configuration=This handbag has no stored configurations
 message.buildershandbag.no_selection=Select a handbag configuration first
 message.buildershandbag.invalid_configuration=That handbag configuration is no longer valid
+message.buildershandbag.no_available_configuration=No configurations available. Open the handbag to recover materials
 message.buildershandbag.no_material=Configured material ran out and could not be refilled
 message.buildershandbag.blockcraftery_failed=The Blockcraftery block could not be configured
 message.buildershandbag.full=No free configuration slots
@@ -60,6 +62,8 @@ message.buildershandbag.added=Configuration added
 # GUI
 gui.buildershandbag.page.previous=Previous configuration page
 gui.buildershandbag.page.next=Next configuration page
+gui.buildershandbag.configuration.unavailable=§cUnavailable configuration: §r%s
+gui.buildershandbag.configuration.material_unavailable=§cRemoving this entry will discard missing material
 gui.buildershandbag.configuration.stored=§7Stored: §a%s§7 x §b%s
 gui.buildershandbag.configuration.select=§bLeft-click§7: select for reordering (only affects order)
 gui.buildershandbag.configuration.deselect=§bLeft-click§7: deselect

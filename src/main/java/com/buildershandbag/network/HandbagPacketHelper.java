@@ -39,6 +39,8 @@ final class HandbagPacketHelper {
         int remaining = configuration.getMaterialCount();
         while (remaining > 0) {
             ItemStack material = configuration.getMaterial();
+            if (material.isEmpty()) return;
+
             int count = Math.min(material.getMaxStackSize(), remaining);
             material.setCount(count);
             player.inventory.placeItemBackInInventory(player.world, material);

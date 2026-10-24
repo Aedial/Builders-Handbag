@@ -17,6 +17,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 import com.buildershandbag.Tags;
@@ -60,6 +61,14 @@ public final class HandbagClientEventHandler {
     private static long lastContentInterpolationTime;
 
     private HandbagClientEventHandler() {
+    }
+
+    @SubscribeEvent
+    public static void onClientDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        Minecraft.getMinecraft().addScheduledTask(() -> {
+            HandbagIntegration.setClientEnabledIntegrations(0);
+            resetContentInterpolation();
+        });
     }
 
     @SubscribeEvent
@@ -109,6 +118,13 @@ public final class HandbagClientEventHandler {
         if (selected < 0) {
             resetContentInterpolation();
             return;
+        }
+
+        for (int index = configurations.size() - 1; index >= 0; index--) {
+            if (configurations.get(index).isAvailable()) continue;
+
+            configurations.remove(index);
+            if (index < selected) selected--;
         }
 
         int displayedCount = Math.min(configurations.size(), CONTENT_SLOT_X.length);
