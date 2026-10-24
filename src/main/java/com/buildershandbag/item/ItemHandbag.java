@@ -34,6 +34,7 @@ import net.minecraftforge.items.IItemHandler;
 import com.buildershandbag.Handbag;
 import com.buildershandbag.block.BlockHandbag;
 import com.buildershandbag.config.HandbagServerConfig;
+import com.buildershandbag.config.HandbagClientConfig;
 import com.buildershandbag.container.GuiHandler;
 import com.buildershandbag.integration.Ae2Integration;
 import com.buildershandbag.integration.BlockcrafteryIntegration;
@@ -111,9 +112,13 @@ public class ItemHandbag extends ItemBlock {
     @Override
     @Nonnull
     public ActionResult<ItemStack> onItemRightClick(@Nonnull World world, EntityPlayer player, @Nonnull EnumHand hand) {
-        ItemStack handbag = player.getHeldItem(hand);
-        openHandbag(player, world, hand);
-        return new ActionResult<>(EnumActionResult.SUCCESS, handbag);
+        if (HandbagServerConfig.behavior.useOldOpen || player.isSneaking()) {
+            ItemStack handbag = player.getHeldItem(hand);
+            openHandbag(player, world, hand);
+            return new ActionResult<>(EnumActionResult.SUCCESS, handbag);
+        }
+
+        return new ActionResult<>(EnumActionResult.PASS, player.getHeldItem(hand));
     }
 
     private void openHandbag(EntityPlayer player, World world, EnumHand hand) {

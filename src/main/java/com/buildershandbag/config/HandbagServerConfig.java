@@ -22,9 +22,13 @@ public final class HandbagServerConfig {
 
     private static final String PREFIX = "buildershandbag.config.server.";
     private static final String INTEGRATIONS_PREFIX = PREFIX + "integrations";
+    private static final String BEHAVIOR_PREFIX = PREFIX + "behavior";
 
     @Config.LangKey(INTEGRATIONS_PREFIX)
     public static final Integrations integrations = new Integrations();
+
+    @Config.LangKey(BEHAVIOR_PREFIX)
+    public static final Behavior behavior = new Behavior();
 
     private HandbagServerConfig() {
     }
@@ -71,6 +75,13 @@ public final class HandbagServerConfig {
 
             return enabledIntegrations;
         }
+    }
+
+    public static final class Behavior {
+
+        @Config.Comment("Allow to use right-click when not targeting a block to open the handbag GUI, instead of shift + right-click only")
+        @Config.LangKey(BEHAVIOR_PREFIX + ".use_old_open")
+        public boolean useOldOpen = false;
     }
 
     @Mod.EventBusSubscriber(modid = Tags.MODID)

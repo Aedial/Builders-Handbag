@@ -35,6 +35,8 @@ buildershandbag.config.server.integrations.blockcraftery=Blockcraftery
 buildershandbag.config.server.integrations.blockcraftery.tooltip=Allow the use of Blockcraftery blocks as decoration options in handbag configurations
 buildershandbag.config.server.integrations.ae2_refill=AE2 Refilling
 buildershandbag.config.server.integrations.ae2_refill.tooltip=Refill an empty selected configuration through its AE2 link, if available
+buildershandbag.config.server.behavior.use_old_open=Use old open controls
+buildershandbag.config.server.behavior.use_old_open.tooltip=Allow to use right-click when not targeting a block to open the handbag GUI, instead of shift + right-click only
 
 # Tooltips
 tooltip.buildershandbag.tooltip=§bAllows you to store and select multiple configurations for decorative blocks. Supports %s

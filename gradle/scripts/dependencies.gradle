@@ -51,9 +51,9 @@ dependencies {
     devOnlyNonPublishable rfg.deobf("curse.maven:architecturecraft-tridev-277631:4344128")
 
     // ---- Optional: BlockCraftery ----
-    devOnlyNonPublishable rfg.deobf("curse.maven:blockcraftery-278882:2716712")
+    compileOnly rfg.deobf("curse.maven:blockcraftery-278882:2716712")
     // BlockCraftery declares this as a required runtime dependency.
-    devOnlyNonPublishable rfg.deobf("curse.maven:mysticallib-277064:2716268")
+    compileOnly rfg.deobf("curse.maven:mysticallib-277064:2716268")
 
     // ---- Optional: AE2-UEL ----
     devOnlyNonPublishable rfg.deobf("curse.maven:ae2-extended-life-570458:5378163")

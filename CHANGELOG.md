@@ -8,6 +8,15 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
+## [1.2.0] - 2026-10-30
+### Added
+
+### Fixed
+
+### Changed
+- Change the right-click behavior to open the GUI only on shift-click, instead of "whenever no block is placed". The old behavior can be restored in config.
+
+
 ## [1.1.1] - 2026-09-16
 ### Fixed
 - Optimize the rendering of the handbag, to reduce the unnecessary load on the client.

@@ -18,6 +18,7 @@ public final class HandbagClientConfig {
 
     private static final String PREFIX = "buildershandbag.config.client.";
     private static final String RENDERING_PREFIX = PREFIX + "rendering";
+
     private static final String DEFAULT_CORE_FACE_COLOR_STR = "#8440E0D0";
     private static final String DEFAULT_CORE_EDGE_COLOR_STR = "#84000000";
 
