@@ -10,7 +10,6 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -30,6 +29,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.wrapper.InvWrapper;
 
 import com.buildershandbag.Handbag;
 import com.buildershandbag.block.BlockHandbag;
@@ -37,6 +37,7 @@ import com.buildershandbag.config.HandbagServerConfig;
 import com.buildershandbag.config.HandbagClientConfig;
 import com.buildershandbag.container.GuiHandler;
 import com.buildershandbag.integration.Ae2Integration;
+import com.buildershandbag.integration.BaublesIntegration;
 import com.buildershandbag.integration.BlockcrafteryIntegration;
 import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.network.HandbagMessages;
@@ -44,6 +45,7 @@ import com.buildershandbag.network.HandbagNetwork;
 import com.buildershandbag.network.PacketHandbagSync;
 import com.buildershandbag.storage.HandbagConfiguration;
 import com.buildershandbag.storage.HandbagStorage;
+import com.buildershandbag.storage.MaterialInventoryHelper;
 
 
 /**
@@ -53,6 +55,7 @@ import com.buildershandbag.storage.HandbagStorage;
 public class ItemHandbag extends ItemBlock {
 
     private static final String AE2_MODID = "appliedenergistics2";
+    private static final String BAUBLES_MODID = "baubles";
 
     public ItemHandbag(BlockHandbag block) {
         super(block);
@@ -210,8 +213,9 @@ public class ItemHandbag extends ItemBlock {
     }
 
     /**
-     * Ensures the selected configuration has one stored material block before placement.
-     * When it is empty, the AE2 link is tried first (if possible) and then the player inventory.
+     * Refills the selected configuration before placement, when its material runs out.
+     * Checks the AE2 link, loose materials, carried bags, and equipped Baubles bags.
+     * Does not support bag nesting.
      */
     private boolean ensureMaterialAvailable(EntityPlayer player, ItemStack handbag, int selected,
             HandbagConfiguration configuration) {
@@ -228,26 +232,30 @@ public class ItemHandbag extends ItemBlock {
             }
         }
 
-        int inventorySlot = findMaterialInInventory(player.inventory, configuration.getMaterial());
-        if (inventorySlot < 0) return false;
+        ItemStack material = configuration.getMaterial();
+        int requested = HandbagStorage.MATERIAL_CAPACITY - configuration.getMaterialCount();
+        ItemStack extracted = findMaterialInInventory(player, material, requested);
+        if (extracted.isEmpty() && Loader.isModLoaded(BAUBLES_MODID)) {
+            extracted = pullMaterialFromBaubles(player, material, requested);
+        }
 
-        ItemStack material = player.inventory.getStackInSlot(inventorySlot);
-        int accepted = HandbagStorage.insertMaterial(handbag, selected, material, false);
+        if (extracted.isEmpty()) return false;
+
+        int accepted = HandbagStorage.insertMaterial(handbag, selected, extracted, false);
         if (accepted <= 0) return false;
 
-        material.shrink(accepted);
-        if (material.isEmpty()) player.inventory.setInventorySlotContents(inventorySlot, ItemStack.EMPTY);
         player.inventory.markDirty();
 
         return true;
     }
 
-    private int findMaterialInInventory(IInventory inventory, ItemStack material) {
-        for (int slot = 0; slot < inventory.getSizeInventory(); slot++) {
-            if (HandbagStorage.sameMaterial(material, inventory.getStackInSlot(slot))) return slot;
-        }
+    private ItemStack findMaterialInInventory(EntityPlayer player, ItemStack material, int amount) {
+        IItemHandler inventory = new InvWrapper(player.inventory);
+        ItemStack extracted = MaterialInventoryHelper.extractMaterial(inventory, material, amount);
+        if (!extracted.isEmpty()) return extracted;
 
-        return -1;
+        return MaterialInventoryHelper.extractFromBags(
+            inventory, material, amount, slot -> player.inventory.markDirty());
     }
 
     private BlockPos getPlacementPosition(World world, BlockPos clickedPos, EnumFacing side) {
@@ -264,6 +272,11 @@ public class ItemHandbag extends ItemBlock {
     @Optional.Method(modid = AE2_MODID)
     private int pullMaterialFromNetwork(EntityPlayer player, ItemStack handbag, ItemStack material, int requestedAmount) {
         return Ae2Integration.refill(player, handbag, material, requestedAmount);
+    }
+
+    @Optional.Method(modid = BAUBLES_MODID)
+    private ItemStack pullMaterialFromBaubles(EntityPlayer player, ItemStack material, int requestedAmount) {
+        return BaublesIntegration.extractMaterial(player, material, requestedAmount);
     }
 
     @Optional.Method(modid = AE2_MODID)

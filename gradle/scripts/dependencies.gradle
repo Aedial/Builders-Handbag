@@ -57,4 +57,7 @@ dependencies {
 
     // ---- Optional: AE2-UEL ----
     devOnlyNonPublishable rfg.deobf("curse.maven:ae2-extended-life-570458:5378163")
+
+    // ---- Optional: Baubles ----
+    devOnlyNonPublishable rfg.deobf("curse.maven:baubles-227083:2518667")
 }
