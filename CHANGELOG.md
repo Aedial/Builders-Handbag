@@ -12,6 +12,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 ### Added
 - Show an error log on opening the GUI when no configurations are available.
 - Allow the Handbag to refill from sub-inventories, like a bag or /dank/null, with Baubles support.
+- Allow the Handbag to be used as a supplier for Building Gadgets or Better Builders Wands.
 
 ### Fixed
 - Allow removed integrations to still persist their configurations, so that material is not lost if the user temporarily removes a mod or wants to recover the blocks. The material will not be selectable and will render as "invalid" in the GUI, but will be restored once the integration is added back.

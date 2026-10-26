@@ -18,8 +18,12 @@ public final class BaublesIntegration {
     }
 
     public static ItemStack extractMaterial(EntityPlayer player, ItemStack material, int amount) {
+        return extractMaterial(player, material, amount, false);
+    }
+
+    public static ItemStack extractMaterial(EntityPlayer player, ItemStack material, int amount, boolean simulate) {
         IBaublesItemHandler inventory = BaublesApi.getBaublesHandler(player);
         return MaterialInventoryHelper.extractFromBags(
-            inventory, material, amount, slot -> inventory.setChanged(slot, true));
+            inventory, material, amount, simulate, slot -> inventory.setChanged(slot, true));
     }
 }

@@ -44,6 +44,7 @@ dependencies {
 
     // ---- Required dependencies ----
 
+
     // ---- Optional: Chisel ----
     devOnlyNonPublishable rfg.deobf("curse.maven:chisel-235279:2915375")
 
@@ -60,4 +61,10 @@ dependencies {
 
     // ---- Optional: Baubles ----
     devOnlyNonPublishable rfg.deobf("curse.maven:baubles-227083:2518667")
+
+    // ---- Optional: Building Gadgets ----
+    devOnlyNonPublishable rfg.deobf("curse.maven:building-gadgets-298187:3005950")
+
+    // ---- Optional: Better Builders Wands ----
+    devOnlyNonPublishable rfg.deobf("curse.maven:better-builders-wands-238403:2691084")
 }

@@ -10,6 +10,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -29,7 +30,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
 
 import com.buildershandbag.Handbag;
 import com.buildershandbag.block.BlockHandbag;
@@ -37,7 +37,6 @@ import com.buildershandbag.config.HandbagServerConfig;
 import com.buildershandbag.config.HandbagClientConfig;
 import com.buildershandbag.container.GuiHandler;
 import com.buildershandbag.integration.Ae2Integration;
-import com.buildershandbag.integration.BaublesIntegration;
 import com.buildershandbag.integration.BlockcrafteryIntegration;
 import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.network.HandbagMessages;
@@ -45,7 +44,7 @@ import com.buildershandbag.network.HandbagNetwork;
 import com.buildershandbag.network.PacketHandbagSync;
 import com.buildershandbag.storage.HandbagConfiguration;
 import com.buildershandbag.storage.HandbagStorage;
-import com.buildershandbag.storage.MaterialInventoryHelper;
+import com.buildershandbag.storage.HandbagMaterialSupply;
 
 
 /**
@@ -55,7 +54,6 @@ import com.buildershandbag.storage.MaterialInventoryHelper;
 public class ItemHandbag extends ItemBlock {
 
     private static final String AE2_MODID = "appliedenergistics2";
-    private static final String BAUBLES_MODID = "baubles";
 
     public ItemHandbag(BlockHandbag block) {
         super(block);
@@ -69,7 +67,7 @@ public class ItemHandbag extends ItemBlock {
     public ICapabilityProvider initCapabilities(@Nonnull ItemStack stack, @Nullable NBTTagCompound nbt) {
         return new ICapabilityProvider() {
 
-            private final IItemHandler handler = new HandbagMaterialHandler(stack);
+            private final IItemHandler handler = new HandbagItemHandler(stack);
 
             @Override
             public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
@@ -84,6 +82,15 @@ public class ItemHandbag extends ItemBlock {
                     : null;
             }
         };
+    }
+
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        super.onUpdate(stack, world, entity, slot, selected);
+        IItemHandler handler = stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+        if (handler instanceof HandbagItemHandler) {
+            ((HandbagItemHandler) handler).setPlayer(entity instanceof EntityPlayer ? (EntityPlayer) entity : null);
+        }
     }
 
     // TODO: Need to figure how we place it on the floor, considering click is placing blocks.
@@ -154,7 +161,7 @@ public class ItemHandbag extends ItemBlock {
             return EnumActionResult.FAIL;
         }
 
-        if (!ensureMaterialAvailable(player, handbag, selected, configuration)) {
+        if (!ensureMaterialAvailable(player, handbag, selected)) {
             HandbagMessages.error(player, "message.buildershandbag.no_material");
             return EnumActionResult.FAIL;
         }
@@ -217,45 +224,8 @@ public class ItemHandbag extends ItemBlock {
      * Checks the AE2 link, loose materials, carried bags, and equipped Baubles bags.
      * Does not support bag nesting.
      */
-    private boolean ensureMaterialAvailable(EntityPlayer player, ItemStack handbag, int selected,
-            HandbagConfiguration configuration) {
-        if (configuration.getMaterialCount() > 0) return true;
-
-        if (!player.world.isRemote && Loader.isModLoaded(AE2_MODID)
-                && HandbagServerConfig.integrations.enableAe2Refill) {
-            int requested = HandbagStorage.MATERIAL_CAPACITY - configuration.getMaterialCount();
-            int pulled = pullMaterialFromNetwork(player, handbag, configuration.getMaterial(), requested);
-            if (pulled > 0) {
-                ItemStack extracted = configuration.getMaterial();
-                extracted.setCount(pulled);
-                if (HandbagStorage.insertMaterial(handbag, selected, extracted, false) > 0) return true;
-            }
-        }
-
-        ItemStack material = configuration.getMaterial();
-        int requested = HandbagStorage.MATERIAL_CAPACITY - configuration.getMaterialCount();
-        ItemStack extracted = findMaterialInInventory(player, material, requested);
-        if (extracted.isEmpty() && Loader.isModLoaded(BAUBLES_MODID)) {
-            extracted = pullMaterialFromBaubles(player, material, requested);
-        }
-
-        if (extracted.isEmpty()) return false;
-
-        int accepted = HandbagStorage.insertMaterial(handbag, selected, extracted, false);
-        if (accepted <= 0) return false;
-
-        player.inventory.markDirty();
-
-        return true;
-    }
-
-    private ItemStack findMaterialInInventory(EntityPlayer player, ItemStack material, int amount) {
-        IItemHandler inventory = new InvWrapper(player.inventory);
-        ItemStack extracted = MaterialInventoryHelper.extractMaterial(inventory, material, amount);
-        if (!extracted.isEmpty()) return extracted;
-
-        return MaterialInventoryHelper.extractFromBags(
-            inventory, material, amount, slot -> player.inventory.markDirty());
+    private boolean ensureMaterialAvailable(EntityPlayer player, ItemStack handbag, int selected) {
+        return HandbagMaterialSupply.refill(player, handbag, selected);
     }
 
     private BlockPos getPlacementPosition(World world, BlockPos clickedPos, EnumFacing side) {
@@ -267,16 +237,6 @@ public class ItemHandbag extends ItemBlock {
     private boolean configureBlockcraftery(World world, BlockPos position, EntityPlayer player, EnumFacing side,
             float hitX, float hitY, float hitZ, ItemStack material) {
         return BlockcrafteryIntegration.configure(world, position, player, side, hitX, hitY, hitZ, material);
-    }
-
-    @Optional.Method(modid = AE2_MODID)
-    private int pullMaterialFromNetwork(EntityPlayer player, ItemStack handbag, ItemStack material, int requestedAmount) {
-        return Ae2Integration.refill(player, handbag, material, requestedAmount);
-    }
-
-    @Optional.Method(modid = BAUBLES_MODID)
-    private ItemStack pullMaterialFromBaubles(EntityPlayer player, ItemStack material, int requestedAmount) {
-        return BaublesIntegration.extractMaterial(player, material, requestedAmount);
     }
 
     @Optional.Method(modid = AE2_MODID)

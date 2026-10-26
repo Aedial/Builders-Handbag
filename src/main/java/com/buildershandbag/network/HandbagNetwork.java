@@ -61,6 +61,9 @@ public final class HandbagNetwork {
         // Server -> client: supplies enabled integrations for selection and rendering
         INSTANCE.registerMessage(
             PacketHandbagIntegrationsSync.Handler.class, PacketHandbagIntegrationsSync.class, packetId++, Side.CLIENT);
+
+        // Server -> client: supplies refillable output counts for building tools
+        INSTANCE.registerMessage(PacketHandbagSupplySync.Handler.class, PacketHandbagSupplySync.class, packetId++, Side.CLIENT);
     }
 
     @SubscribeEvent

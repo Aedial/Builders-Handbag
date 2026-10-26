@@ -100,8 +100,6 @@ if (propertyBool('publish_to_curseforge') && propertyString('curseforge_project_
         mainFile.addRelation('blockcraftery', 'optionalDependency')
         // Optional: AE2-UEL
         mainFile.addRelation('ae2-extended-life', 'optionalDependency')
-        // Optional: Baubles
-        mainFile.addRelation('baubles', 'optionalDependency')
     }
 }
 

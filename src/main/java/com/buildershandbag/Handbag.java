@@ -19,7 +19,8 @@ import com.buildershandbag.network.HandbagNetwork;
     modid = Tags.MODID,
     name = Tags.MODNAME,
     version = Tags.VERSION,
-    acceptedMinecraftVersions = "[1.12.2]"
+    acceptedMinecraftVersions = "[1.12.2]",
+    dependencies = "required-after:mixinbooter@[8.0,)"
 )
 public class Handbag {
 

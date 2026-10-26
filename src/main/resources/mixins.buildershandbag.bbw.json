@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8.5",
+  "package": "com.buildershandbag.mixin.bbw",
+  "refmap": "${mixin_refmap}",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinHandlerCapability",
+    "MixinBasicPlayerShim",
+    "MixinWandWorker"
+  ],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

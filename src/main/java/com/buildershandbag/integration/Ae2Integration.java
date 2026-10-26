@@ -51,6 +51,11 @@ public final class Ae2Integration implements IWirelessTermHandler {
      * Pulls the requested material from the linked network.
      */
     public static int refill(EntityPlayer player, ItemStack handbag, ItemStack material, int requestedAmount) {
+        return refill(player, handbag, material, requestedAmount, false);
+    }
+
+    public static int refill(EntityPlayer player, ItemStack handbag, ItemStack material, int requestedAmount,
+            boolean simulate) {
         if (!HandbagServerConfig.integrations.enableAe2Refill || requestedAmount <= 0
                 || handbag.isEmpty() || material.isEmpty() || !isLinked(handbag)) {
             return 0;
@@ -70,7 +75,8 @@ public final class Ae2Integration implements IWirelessTermHandler {
 
         IEnergyGrid energy = wireless.getActionableNode().getGrid().getCache(IEnergyGrid.class);
         IAEItemStack extracted = Platform.poweredExtraction(
-            energy, monitor, request, new PlayerSource(player, wireless), Actionable.MODULATE);
+            energy, monitor, request, new PlayerSource(player, wireless),
+            simulate ? Actionable.SIMULATE : Actionable.MODULATE);
 
         return extracted == null ? 0 : (int) Math.min(requestedAmount, extracted.getStackSize());
     }

@@ -191,12 +191,19 @@ public final class HandbagStorage {
     }
 
     public static boolean consumeMaterial(ItemStack handbag, int index) {
+        return consumeMaterial(handbag, index, 1) == 1;
+    }
+
+    public static int consumeMaterial(ItemStack handbag, int index, int amount) {
         HandbagConfiguration configuration = getConfiguration(handbag, index);
         if (configuration == null || !configuration.isAvailable()
-                || configuration.getMaterialCount() <= 0) return false;
+                || amount <= 0 || configuration.getMaterialCount() <= 0) return 0;
 
-        replaceConfiguration(handbag, index, configuration.withMaterialCount(configuration.getMaterialCount() - 1));
-        return true;
+        int consumed = Math.min(amount, configuration.getMaterialCount());
+        int newCount = configuration.getMaterialCount() - consumed;
+        replaceConfiguration(handbag, index, configuration.withMaterialCount(newCount));
+
+        return consumed;
     }
 
     public static boolean sameMaterial(ItemStack first, ItemStack second) {
