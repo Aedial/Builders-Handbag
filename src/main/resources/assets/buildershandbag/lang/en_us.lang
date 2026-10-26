@@ -1,6 +1,8 @@
 # Misc
 item.buildershandbag.handbag.name=Builder's Handbag
 tile.buildershandbag.handbag.name=Builder's Handbag
+key.categories.buildershandbag=Builder's Handbag
+key.buildershandbag.pick_block=Pick block configuration
 integration.buildershandbag.chisel=Chisel
 integration.buildershandbag.architecturecraft=ArchitectureCraft
 integration.buildershandbag.blockcraftery=BlockCraftery
@@ -58,6 +60,8 @@ message.buildershandbag.blockcraftery_failed=The Blockcraftery block could not b
 message.buildershandbag.full=No free configuration slots
 message.buildershandbag.invalid_option=That decoration option is no longer available
 message.buildershandbag.added=Configuration added
+message.buildershandbag.picked=Configuration selected
+message.buildershandbag.invalid_pick=That block has no supported handbag configuration
 
 # GUI
 gui.buildershandbag.page.previous=Previous configuration page

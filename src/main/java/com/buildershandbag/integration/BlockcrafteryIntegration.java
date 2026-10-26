@@ -2,10 +2,13 @@ package com.buildershandbag.integration;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -17,6 +20,8 @@ import epicsquid.blockcraftery.block.IEditableBlock;
 import epicsquid.blockcraftery.tile.TileEditableBlock;
 
 import com.buildershandbag.network.HandbagNetwork;
+import com.buildershandbag.storage.HandbagConfiguration;
+import com.buildershandbag.storage.HandbagOutputs;
 
 
 /**
@@ -27,13 +32,27 @@ public final class BlockcrafteryIntegration {
     private BlockcrafteryIntegration() {
     }
 
-    static void addOptions(List<HandbagConfigurationOption> options) {
+    public static void addOptions(List<HandbagConfigurationOption> options) {
         for (Block block : ForgeRegistries.BLOCKS.getValuesCollection()) {
             if (!(block instanceof IEditableBlock)) continue;
 
             Item item = Item.getItemFromBlock(block);
             HandbagConfigurationProvider.addOption(options, new HandbagConfigurationOption(new ItemStack(item), HandbagIntegration.BLOCKCRAFTERY));
         }
+    }
+
+    @Nullable
+    public static HandbagConfiguration pickConfiguration(World world, BlockPos pos, ItemStack frame) {
+        TileEntity tile = world.getTileEntity(pos);
+        if (!(tile instanceof TileEditableBlock)
+                || !(Block.getBlockFromItem(frame.getItem()) instanceof IEditableBlock)) return null;
+
+        ItemStack material = HandbagOutputs.getBlockcrafteryMaterial(tile.writeToNBT(new NBTTagCompound()));
+        if (!HandbagConfigurationProvider.isConfigurationMaterial(material)
+                || Block.getBlockFromItem(material.getItem()) instanceof IEditableBlock) return null;
+
+        ItemStack result = new ItemStack(frame.getItem());
+        return new HandbagConfiguration(material, result, HandbagIntegration.BLOCKCRAFTERY, 0);
     }
 
     /**

@@ -4,6 +4,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.buildershandbag.client.HandbagPicker;
 import com.buildershandbag.client.render.HandbagItemStackRenderer;
 import com.buildershandbag.client.render.RenderHandbag;
 import com.buildershandbag.config.HandbagClientConfig;
@@ -18,6 +19,7 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         HandbagClientConfig.refreshRenderingColors();
+        HandbagPicker.registerKeyBinding();
         ClientRegistry.bindTileEntitySpecialRenderer(TileHandbag.class, handbagRenderer);
         MinecraftForge.EVENT_BUS.register(handbagRenderer);
         ItemRegistry.HANDBAG.setTileEntityItemStackRenderer(new HandbagItemStackRenderer());

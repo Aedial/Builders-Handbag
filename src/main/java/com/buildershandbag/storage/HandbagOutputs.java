@@ -31,6 +31,7 @@ public final class HandbagOutputs {
     private HandbagOutputs() {
     }
 
+    @SuppressWarnings("deprecation")
     public static ItemStack getResult(HandbagConfiguration configuration) {
         ItemStack result = configuration.getResult();
         if (configuration.getIntegration() != HandbagIntegration.BLOCKCRAFTERY) return result;
@@ -130,12 +131,12 @@ public final class HandbagOutputs {
         return result;
     }
 
-    private static ItemStack getBlockcrafteryMaterial(NBTTagCompound tile) {
+    public static ItemStack getBlockcrafteryMaterial(NBTTagCompound tile) {
         ItemStack material = new ItemStack(tile.getCompoundTag("stack"));
         if (!material.isEmpty()) return material;
 
         IBlockState state = NBTUtil.readBlockState(tile.getCompoundTag("state"));
-        return new ItemStack(state.getBlock(), 1, state.getBlock().getMetaFromState(state));
+        return new ItemStack(state.getBlock(), 1, state.getBlock().damageDropped(state));
     }
 
     public static boolean applyTile(World world, BlockPos pos, ItemStack output) {

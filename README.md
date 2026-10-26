@@ -4,6 +4,8 @@ A Minecraft 1.12.2 building tool for easily switching between up to 36 decoratio
 
 The Handbag can also act as a supplier for Building Gadgets or Better Builders Wands, providing materials from its internal inventory. For that, it needs a mixin loader, like [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter) / Cleanroom 0.6+.
 
+With the handbag in your main hand, middle-click (configurable keybind) a supported block to add its configuration.
+
 ## Optional integrations
 
 - **Chisel** for carved block variants.

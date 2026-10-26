@@ -64,6 +64,11 @@ public final class HandbagNetwork {
 
         // Server -> client: supplies refillable output counts for building tools
         INSTANCE.registerMessage(PacketHandbagSupplySync.Handler.class, PacketHandbagSupplySync.class, packetId++, Side.CLIENT);
+
+        // Client -> server: picks a configuration from a targeted world block
+        INSTANCE.registerMessage(
+            PacketPickHandbagConfiguration.Handler.class, PacketPickHandbagConfiguration.class,
+            packetId++, Side.SERVER);
     }
 
     @SubscribeEvent
