@@ -6,7 +6,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "MixinHandlerCapability",
-    "MixinBasicPlayerShim",
+    "MixinOffhandPlayerShim",
     "MixinWandWorker"
   ],
   "client": [],

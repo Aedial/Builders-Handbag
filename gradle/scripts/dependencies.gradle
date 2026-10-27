@@ -67,4 +67,7 @@ dependencies {
 
     // ---- Optional: Better Builders Wands ----
     devOnlyNonPublishable rfg.deobf("curse.maven:better-builders-wands-238403:2691084")
+
+    // ---- Runtime: Better Builders Wands Fix ----
+    runtimeOnly rfg.deobf("curse.maven:better-builders-wands-fix-1198068:7672041")
 }
