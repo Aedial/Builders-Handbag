@@ -293,5 +293,8 @@ public class ItemHandbag extends ItemBlock {
             // may not have selected on first configuration
             tooltip.add(I18n.format("tooltip.buildershandbag.no_selection"));
         }
+
+        tooltip.add("");
+        tooltip.add(I18n.format("tooltip.buildershandbag.provides"));
     }
 }

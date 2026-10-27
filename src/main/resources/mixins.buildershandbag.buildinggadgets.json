@@ -10,7 +10,9 @@
     "MixinGadgetBuilding",
     "MixinBlockBuildEntity"
   ],
-  "client": [],
+  "client": [
+    "MixinToolRenders"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1

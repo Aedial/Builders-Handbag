@@ -49,6 +49,7 @@ tooltip.buildershandbag.configurations=Configurations: §a%s/%s
 tooltip.buildershandbag.selected=Selected: §b%s§7 (§a%s§7 stored). §bRight-click§7 to place the block, §bShift + Scroll§7 to change selected block
 tooltip.buildershandbag.no_selection=§eNo configuration selected. §bSneak-scroll§e to select one
 tooltip.buildershandbag.no_available_configurations=No configurations available. Open the handbag to recover materials
+tooltip.buildershandbag.provides=Can provide configured blocks for Better Builder's Wands and Building Gadgets
 
 # Messages
 message.buildershandbag.no_configuration=This handbag has no stored configurations
