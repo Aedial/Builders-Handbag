@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.direwolf20.buildinggadgets.common.entities.BlockBuildEntity;
@@ -24,6 +25,19 @@ public abstract class MixinBlockBuildEntity {
     private World world;
     @Shadow
     private BlockPos setPos;
+
+    @Redirect(method = "setDespawning", at = @At(value = "INVOKE",
+        target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z", ordinal = 1,
+        remap = true))
+    private boolean buildershandbag$transferTileData(World world, Entity next) {
+        Entity current = (Entity) (Object) this;
+        if (current.getEntityData().hasKey(BuildingGadgetsTarget.NBT_TARGET)) {
+            next.getEntityData().setTag(BuildingGadgetsTarget.NBT_TARGET,
+                current.getEntityData().getTag(BuildingGadgetsTarget.NBT_TARGET).copy());
+        }
+
+        return world.spawnEntity(next);
+    }
 
     @Inject(method = "setDespawning", at = @At(value = "INVOKE",
         target = "Lnet/minecraft/block/Block;neighborChanged(Lnet/minecraft/block/state/IBlockState;"

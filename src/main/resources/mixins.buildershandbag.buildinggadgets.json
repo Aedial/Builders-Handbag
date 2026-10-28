@@ -8,6 +8,8 @@
     "MixinInventoryManipulation",
     "MixinGadgetUtils",
     "MixinGadgetBuilding",
+    "MixinGadgetExchanger",
+    "MixinGadgetCopyPaste",
     "MixinBlockBuildEntity"
   ],
   "client": [

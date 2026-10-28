@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.direwolf20.buildinggadgets.common.config.SyncedConfig;
 import com.direwolf20.buildinggadgets.common.items.gadgets.GadgetBuilding;
+import com.direwolf20.buildinggadgets.common.items.gadgets.GadgetExchanger;
 import com.direwolf20.buildinggadgets.common.tools.GadgetUtils;
 import com.direwolf20.buildinggadgets.common.tools.VectorTools;
 
@@ -39,7 +40,7 @@ public abstract class MixinGadgetUtils {
     @Inject(method = "selectBlock", at = @At("HEAD"), cancellable = true)
     private static void buildershandbag$selectConfiguredBlock(ItemStack gadget, EntityPlayer player,
             CallbackInfo callback) {
-        if (!(gadget.getItem() instanceof GadgetBuilding)) return;
+        if (!(gadget.getItem() instanceof GadgetBuilding) && !(gadget.getItem() instanceof GadgetExchanger)) return;
 
         RayTraceResult lookingAt = VectorTools.getLookingAt(player, false);
         if (lookingAt == null || lookingAt.typeOfHit != RayTraceResult.Type.BLOCK) return;

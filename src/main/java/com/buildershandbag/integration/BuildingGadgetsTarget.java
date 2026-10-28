@@ -6,11 +6,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import com.direwolf20.buildinggadgets.common.items.gadgets.GadgetBuilding;
+import com.direwolf20.buildinggadgets.common.items.gadgets.GadgetExchanger;
+import com.direwolf20.buildinggadgets.common.items.gadgets.GadgetGeneric;
 import com.direwolf20.buildinggadgets.common.tools.GadgetUtils;
 
 
 /**
- * Selected output stack and tile data retained on the Building Gadget.
+ * Selected output stack and tile data retained on building gadgets.
  */
 public final class BuildingGadgetsTarget {
 
@@ -20,7 +22,10 @@ public final class BuildingGadgetsTarget {
     }
 
     public static ItemStack get(ItemStack gadget) {
-        if (!(gadget.getItem() instanceof GadgetBuilding) || !gadget.hasTagCompound()) return ItemStack.EMPTY;
+        if (!(gadget.getItem() instanceof GadgetBuilding) && !(gadget.getItem() instanceof GadgetExchanger)) {
+            return ItemStack.EMPTY;
+        }
+        if (!gadget.hasTagCompound()) return ItemStack.EMPTY;
 
         ItemStack target = new ItemStack(gadget.getTagCompound().getCompoundTag(NBT_TARGET));
         if (target.isEmpty() || Block.getBlockFromItem(target.getItem())
@@ -30,7 +35,7 @@ public final class BuildingGadgetsTarget {
     }
 
     public static ItemStack resolve(ItemStack requested, EntityPlayer player) {
-        ItemStack target = get(GadgetBuilding.getGadget(player));
+        ItemStack target = get(GadgetGeneric.getGadget(player));
         if (target.isEmpty()) return requested;
         if (requested.isEmpty()) return target;
         if (!ItemStack.areItemsEqual(target, requested)) return requested;
