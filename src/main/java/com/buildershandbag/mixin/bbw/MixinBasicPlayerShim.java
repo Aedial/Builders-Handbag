@@ -1,6 +1,5 @@
 package com.buildershandbag.mixin.bbw;
 
-import java.util.List;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -43,7 +42,7 @@ public abstract class MixinBasicPlayerShim {
 
     @Inject(method = "useItem", at = @At("TAIL"), cancellable = true, locals = LocalCapture.CAPTURE_FAILHARD)
     private void buildershandbag$useOffhand(ItemStack requested, CallbackInfoReturnable<ItemStack> callback,
-            ContainerManager manager, Map<?, ?> state, int remaining, List<ItemStack> providers) {
+            ContainerManager manager, Map<?, ?> state, int remaining) {
         if (BbwHandbagSupply.extractOffhand(player, requested, remaining)) callback.setReturnValue(requested.copy());
     }
 }
