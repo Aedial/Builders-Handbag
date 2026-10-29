@@ -13,7 +13,9 @@
     "MixinBlockBuildEntity"
   ],
   "client": [
-    "MixinToolRenders"
+    "MixinToolRenders",
+    "MixinBlockBuildEntityRender",
+    "MixinPasteToolBufferBuilder"
   ],
   "server": [],
   "injectors": {

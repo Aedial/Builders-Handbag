@@ -25,14 +25,12 @@ import com.direwolf20.buildinggadgets.common.tools.WorldSave;
 
 import com.buildershandbag.integration.BuildingGadgetsCopy;
 import com.buildershandbag.integration.BuildingGadgetsTarget;
+import com.buildershandbag.integration.BuildingGadgetsEntity;
 import com.buildershandbag.storage.HandbagOutputs;
 
 
 @Mixin(value = GadgetCopyPaste.class, remap = false)
 public abstract class MixinGadgetCopyPaste {
-
-    // FIXME: BlockCraftery doesn't show preview and ArchitectureCraft shows broken textures preview,
-    //        but I feel they are related to their respective render() methods.
 
     @Redirect(method = "findBlocks", at = @At(value = "INVOKE",
         target = "Lnet/minecraft/world/World;getTileEntity(Lnet/minecraft/util/math/BlockPos;)"
@@ -129,6 +127,7 @@ public abstract class MixinGadgetCopyPaste {
         if (!output.isEmpty() && entity instanceof BlockBuildEntity
                 && !((BlockBuildEntity) entity).getUsingConstructionPaste()) {
             entity.getEntityData().setTag(BuildingGadgetsTarget.NBT_TARGET, output.writeToNBT(new NBTTagCompound()));
+            ((BuildingGadgetsEntity) entity).buildershandbag$setOutput(output);
         }
 
         return world.spawnEntity(entity);

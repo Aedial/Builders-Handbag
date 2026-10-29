@@ -86,7 +86,10 @@ public final class BuildingGadgetsCopy {
         NBTTagCompound map = WorldSave.getWorldSave(world).getCompoundFromUUID(uuid);
         if (map == null) return ItemStack.EMPTY;
 
-        int relative = GadgetUtils.relPosToInt(start, pos);
+        return getOutput(map, GadgetUtils.relPosToInt(start, pos));
+    }
+
+    public static ItemStack getOutput(NBTTagCompound map, int relative) {
         NBTTagCompound outputs = map.getCompoundTag(NBT_OUTPUTS);
         String key = Integer.toString(relative);
         if (!outputs.hasKey(key, Constants.NBT.TAG_INT)) return ItemStack.EMPTY;

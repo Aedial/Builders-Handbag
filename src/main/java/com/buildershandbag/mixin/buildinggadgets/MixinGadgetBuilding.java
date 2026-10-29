@@ -20,6 +20,7 @@ import com.direwolf20.buildinggadgets.common.items.gadgets.GadgetBuilding;
 import com.direwolf20.buildinggadgets.common.tools.InventoryManipulation;
 
 import com.buildershandbag.integration.BuildingGadgetsTarget;
+import com.buildershandbag.integration.BuildingGadgetsEntity;
 
 
 @Mixin(value = GadgetBuilding.class, remap = false)
@@ -50,6 +51,7 @@ public abstract class MixinGadgetBuilding {
         if (!output.isEmpty() && entity instanceof BlockBuildEntity
                 && !((BlockBuildEntity) entity).getUsingConstructionPaste()) {
             entity.getEntityData().setTag(BuildingGadgetsTarget.NBT_TARGET, output.writeToNBT(new NBTTagCompound()));
+            ((BuildingGadgetsEntity) entity).buildershandbag$setOutput(output);
         }
 
         return world.spawnEntity(entity);

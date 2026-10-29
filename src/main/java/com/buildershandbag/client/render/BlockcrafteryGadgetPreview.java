@@ -17,6 +17,8 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.property.IExtendedBlockState;
@@ -29,8 +31,6 @@ import epicsquid.blockcraftery.block.IEditableBlock;
 @SideOnly(Side.CLIENT)
 public final class BlockcrafteryGadgetPreview {
 
-    // FIXME: The "grow" animation does not render the block at all
-
     private BlockcrafteryGadgetPreview() {
     }
 
@@ -38,17 +38,10 @@ public final class BlockcrafteryGadgetPreview {
             ItemStack output) {
         if (!(state.getBlock() instanceof IEditableBlock) || !(state instanceof IExtendedBlockState)) return false;
 
-        IBlockState preview = state;
-        BlockRenderLayer layer = BlockRenderLayer.CUTOUT_MIPPED;
-        if (output.hasTagCompound()) {
-            IBlockState material = NBTUtil.readBlockState(output.getTagCompound()
-                .getCompoundTag("BlockEntityTag").getCompoundTag("state"));
-            if (material.getBlock() != Blocks.AIR) {
-                IUnlistedProperty<IBlockState> property = ((IEditableBlock) state.getBlock()).getStateProperty();
-                preview = ((IExtendedBlockState) state).withProperty(property, material);
-                layer = material.getBlock().getRenderLayer();
-            }
-        }
+        IBlockState material = getMaterial(output);
+        IBlockState preview = getPreview(state, material);
+        BlockRenderLayer layer = material.getBlock() == Blocks.AIR
+            ? BlockRenderLayer.CUTOUT_MIPPED : material.getBlock().getRenderLayer();
 
         BlockRenderLayer previous = MinecraftForgeClient.getRenderLayer();
         ForgeHooksClient.setRenderLayer(layer);
@@ -58,7 +51,43 @@ public final class BlockcrafteryGadgetPreview {
         } finally {
             ForgeHooksClient.setRenderLayer(previous);
         }
+
         return true;
+    }
+
+    public static boolean append(BlockRendererDispatcher dispatcher, IBlockState state, ItemStack output,
+            World world, BlockPos source, BlockPos relative, BufferBuilder buffer) {
+        if (!(state.getBlock() instanceof IEditableBlock) || !(state instanceof IExtendedBlockState)
+                || !output.hasTagCompound()) return false;
+
+        IBlockState material = getMaterial(output);
+        if (material.getBlock() == Blocks.AIR) return false;
+
+        IBlockState preview = getPreview(state, material);
+        BlockRenderLayer previous = MinecraftForgeClient.getRenderLayer();
+        ForgeHooksClient.setRenderLayer(material.getBlock().getRenderLayer());
+        try {
+            GadgetPreviewBuffer.appendModel(dispatcher.getModelForState(state), preview, material,
+                world, source, relative, buffer);
+        } finally {
+            ForgeHooksClient.setRenderLayer(previous);
+        }
+
+        return true;
+    }
+
+    private static IBlockState getMaterial(ItemStack output) {
+        if (!output.hasTagCompound()) return Blocks.AIR.getDefaultState();
+
+        return NBTUtil.readBlockState(output.getTagCompound()
+            .getCompoundTag("BlockEntityTag").getCompoundTag("state"));
+    }
+
+    private static IBlockState getPreview(IBlockState state, IBlockState material) {
+        if (material.getBlock() == Blocks.AIR) return state;
+
+        IUnlistedProperty<IBlockState> property = ((IEditableBlock) state.getBlock()).getStateProperty();
+        return ((IExtendedBlockState) state).withProperty(property, material);
     }
 
     // MysticalLib builds the editable geometry without a quad orientation
@@ -68,6 +97,7 @@ public final class BlockcrafteryGadgetPreview {
         for (EnumFacing facing : EnumFacing.values()) {
             renderQuads(buffer, model.getQuads(preview, facing, 0L), facing, brightness);
         }
+
         renderQuads(buffer, model.getQuads(preview, null, 0L), null, brightness);
     }
 

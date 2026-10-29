@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -16,13 +17,18 @@ import com.buildershandbag.integration.HandbagIntegration;
 @SideOnly(Side.CLIENT)
 public final class BuildingGadgetPreview {
 
-    private final EntityPlayer player;
+    private final World world;
     private final ItemStack output;
     private BlockPos position;
 
     public BuildingGadgetPreview(EntityPlayer player, ItemStack gadget) {
-        this.player = player;
+        this.world = player.world;
         this.output = BuildingGadgetsTarget.get(gadget);
+    }
+
+    public BuildingGadgetPreview(World world, ItemStack output) {
+        this.world = world;
+        this.output = output;
     }
 
     public void setPosition(BlockPos position) {
@@ -40,7 +46,7 @@ public final class BuildingGadgetPreview {
 
         if (name.getNamespace().equals(HandbagIntegration.ARCHITECTURECRAFT_MODID)
                 && HandbagIntegration.ARCHITECTURECRAFT.isModLoaded() && !output.isEmpty()) {
-            return ArchitectureCraftGadgetPreview.render(dispatcher, state, brightness, player, position, output);
+            return ArchitectureCraftGadgetPreview.render(dispatcher, state, brightness, world, position, output);
         }
 
         return false;
