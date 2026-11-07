@@ -30,10 +30,10 @@ public final class HandbagMaterialHandler implements IItemHandler {
     @Nonnull
     public ItemStack getStackInSlot(int slot) {
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, slot);
-        if (configuration == null || configuration.getMaterialCount() <= 0) return ItemStack.EMPTY;
+        if (configuration == null || configuration.getMaterialAmount().getWholeCount() <= 0) return ItemStack.EMPTY;
 
         ItemStack displayed = configuration.getMaterial();
-        displayed.setCount(Math.min(displayed.getMaxStackSize(), configuration.getMaterialCount()));
+        displayed.setCount(Math.min(displayed.getMaxStackSize(), configuration.getMaterialAmount().getWholeCount()));
         return displayed;
     }
 

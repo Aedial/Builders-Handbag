@@ -30,6 +30,8 @@ public final class HandbagStorage {
     private static final String NBT_RESULT = "Result";
     private static final String NBT_INTEGRATION = "Integration";
     private static final String NBT_MATERIAL_COUNT = "MaterialCount";
+    private static final String NBT_MATERIAL_REMAINDER = "MaterialRemainder";
+    private static final String NBT_MATERIAL_DENOMINATOR = "MaterialDenominator";
 
     private HandbagStorage() {
     }
@@ -183,10 +185,11 @@ public final class HandbagStorage {
         HandbagConfiguration configuration = getConfiguration(handbag, index);
         if (configuration == null || !sameMaterial(configuration.getMaterial(), material)) return 0;
 
-        int accepted = Math.min(material.getCount(), MATERIAL_CAPACITY - configuration.getMaterialCount());
+        MaterialAmount balance = configuration.getMaterialAmount();
+        int accepted = Math.min(material.getCount(), balance.getFreeSpace(MATERIAL_CAPACITY));
         if (accepted <= 0 || simulate) return Math.max(0, accepted);
 
-        replaceConfiguration(handbag, index, configuration.withMaterialCount(configuration.getMaterialCount() + accepted));
+        replaceConfiguration(handbag, index, configuration.withMaterialAmount(balance.add(accepted)));
         return accepted;
     }
 
@@ -194,14 +197,19 @@ public final class HandbagStorage {
         return consumeMaterial(handbag, index, 1) == 1;
     }
 
+    /**
+     * Deducts the material cost for up to the requested number of configured outputs.
+     */
     public static int consumeMaterial(ItemStack handbag, int index, int amount) {
         HandbagConfiguration configuration = getConfiguration(handbag, index);
         if (configuration == null || !configuration.isAvailable()
-                || amount <= 0 || configuration.getMaterialCount() <= 0) return 0;
+                || amount <= 0) return 0;
 
-        int consumed = Math.min(amount, configuration.getMaterialCount());
-        int newCount = configuration.getMaterialCount() - consumed;
-        replaceConfiguration(handbag, index, configuration.withMaterialCount(newCount));
+        int consumed = Math.min(amount, configuration.getOutputCount());
+        if (consumed <= 0) return 0;
+
+        MaterialAmount remaining = configuration.getMaterialAmount().consume(configuration.getMaterialCost(), consumed);
+        replaceConfiguration(handbag, index, configuration.withMaterialAmount(remaining));
 
         return consumed;
     }
@@ -232,11 +240,15 @@ public final class HandbagStorage {
         HandbagIntegration integration = HandbagIntegration.fromModId(serialized.getString(NBT_INTEGRATION));
         if (integration == null) return null;
 
+        int count = Math.min(MATERIAL_CAPACITY, Math.max(0, serialized.getInteger(NBT_MATERIAL_COUNT)));
+        int denominator = Math.max(1, serialized.getInteger(NBT_MATERIAL_DENOMINATOR));
+        int remainder = Math.min(denominator - 1, Math.max(0, serialized.getInteger(NBT_MATERIAL_REMAINDER)));
+
         return new HandbagConfiguration(
             serialized.getCompoundTag(NBT_MATERIAL),
             serialized.getCompoundTag(NBT_RESULT),
             integration,
-            Math.min(MATERIAL_CAPACITY, Math.max(0, serialized.getInteger(NBT_MATERIAL_COUNT))));
+            new MaterialAmount((long) count * denominator + remainder, denominator));
     }
 
     private static void replaceConfiguration(ItemStack handbag, int index, HandbagConfiguration replacement) {
@@ -257,7 +269,12 @@ public final class HandbagStorage {
             tag.setTag(NBT_MATERIAL, configuration.getMaterialData());
             tag.setTag(NBT_RESULT, configuration.getResultData());
             tag.setString(NBT_INTEGRATION, configuration.getIntegration().getModID());
-            tag.setInteger(NBT_MATERIAL_COUNT, Math.min(MATERIAL_CAPACITY, configuration.getMaterialCount()));
+            MaterialAmount amount = configuration.getMaterialAmount();
+            tag.setInteger(NBT_MATERIAL_COUNT, Math.min(MATERIAL_CAPACITY, amount.getWholeCount()));
+            if (amount.getRemainder() > 0) {
+                tag.setInteger(NBT_MATERIAL_REMAINDER, amount.getRemainder());
+                tag.setInteger(NBT_MATERIAL_DENOMINATOR, amount.getDenominator());
+            }
             serialized.appendTag(tag);
         }
 

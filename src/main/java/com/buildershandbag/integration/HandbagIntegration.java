@@ -1,20 +1,31 @@
 package com.buildershandbag.integration;
 
 import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import com.buildershandbag.config.HandbagServerConfig;
+import com.buildershandbag.storage.MaterialAmount;
 
 
 /**
  * The origin of a configuration option, used to identify the integration that produced it.
+ * Material costs for the supported configuration integrations.
  */
 public enum HandbagIntegration {
     CHISEL("chisel"),
-    ARCHITECTURECRAFT("architecturecraft"),
+    ARCHITECTURECRAFT("architecturecraft") {
+        @Override
+        public MaterialAmount getMaterialCost(ItemStack material, ItemStack result) {
+            if (!isModLoaded()) return MaterialAmount.BLOCK;
+
+            return getArchitectureCraftCost(material, result);
+        }
+    },
     BLOCKCRAFTERY("blockcraftery");
 
     public static final String CHISEL_MODID = "chisel";
@@ -31,6 +42,15 @@ public enum HandbagIntegration {
 
     public String getModID() {
         return modid;
+    }
+
+    public MaterialAmount getMaterialCost(ItemStack material, ItemStack result) {
+        return MaterialAmount.BLOCK;
+    }
+
+    @Optional.Method(modid = ARCHITECTURECRAFT_MODID)
+    private static MaterialAmount getArchitectureCraftCost(ItemStack material, ItemStack result) {
+        return ArchitectureCraftIntegration.getMaterialCost(material, result);
     }
 
     public boolean isModLoaded() {

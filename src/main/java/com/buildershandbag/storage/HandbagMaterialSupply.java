@@ -25,11 +25,12 @@ public final class HandbagMaterialSupply {
     public static boolean refill(EntityPlayer player, ItemStack handbag, int index) {
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, index);
         if (configuration == null || !configuration.isAvailable()) return false;
-        if (configuration.getMaterialCount() > 0) return true;
+        if (configuration.getOutputCount() > 0) return true;
         if (player == null || player.world.isRemote) return false;
 
         ItemStack material = configuration.getMaterial();
-        int requested = HandbagStorage.MATERIAL_CAPACITY - configuration.getMaterialCount();
+        MaterialAmount balance = configuration.getMaterialAmount();
+        int requested = balance.getFreeSpace(HandbagStorage.MATERIAL_CAPACITY);
         int pulled = extractNetwork(player, handbag, material, requested, false);
         pulled += extractInventory(player, material, requested - pulled, false);
         if (pulled <= 0) return false;
@@ -39,7 +40,7 @@ public final class HandbagMaterialSupply {
         player.inventory.markDirty();
         player.inventoryContainer.detectAndSendChanges();
 
-        return true;
+        return balance.add(pulled).getOutputCount(configuration.getMaterialCost()) > 0;
     }
 
     public static int extractInventory(EntityPlayer player, ItemStack material, int amount, boolean simulate) {

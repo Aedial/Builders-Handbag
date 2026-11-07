@@ -58,11 +58,11 @@ public final class HandbagItemHandler implements IItemHandler {
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, index);
         if (configuration == null || !configuration.isAvailable()) return ItemStack.EMPTY;
 
+        ItemStack result = HandbagOutputs.getResult(configuration);
         int count = HandbagOutputSupply.extractConfiguration(
-            getPlayer(), handbag, index, HandbagStorage.MATERIAL_CAPACITY, true);
+            getPlayer(), handbag, index, result.getMaxStackSize(), true);
         if (count <= 0) return ItemStack.EMPTY;
 
-        ItemStack result = HandbagOutputs.getResult(configuration);
         result.setCount(Math.min(count, result.getMaxStackSize()));
         return result;
     }

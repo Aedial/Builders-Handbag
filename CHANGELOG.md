@@ -21,6 +21,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 ### Changed
 - Change the right-click behavior to open the GUI only on shift-click, instead of "whenever no block is placed". The old behavior can be restored in config.
+- ArchitectureCraft will now consume the true fractional amount of materials required for its blocks, rather than 1 whole block per placement.
 
 
 ## [1.1.1] - 2026-09-16

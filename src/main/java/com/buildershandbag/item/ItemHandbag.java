@@ -286,7 +286,7 @@ public class ItemHandbag extends ItemBlock {
             tooltip.add(I18n.format(
                 "tooltip.buildershandbag.selected",
                 configuration.getResult().getDisplayName(),
-                configuration.getMaterialCount()));
+                configuration.getMaterialAmount()));
         } else if (configurations.stream().noneMatch(HandbagConfiguration::isAvailable)) {
             tooltip.add(I18n.format("tooltip.buildershandbag.no_available_configurations"));
         } else {

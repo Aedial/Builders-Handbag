@@ -1,9 +1,9 @@
 package com.buildershandbag.storage;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -59,46 +59,54 @@ public final class HandbagOutputSupply {
 
     private static int countAvailable(EntityPlayer player, ItemStack requested, boolean includeNetwork) {
         long count = 0;
-        List<ItemStack> materials = new ArrayList<>();
-        List<Set<String>> links = new ArrayList<>();
+        List<AvailableMaterial> materials = new ArrayList<>();
         for (ItemStack handbag : getHandbags(player)) {
             for (HandbagConfiguration configuration : HandbagStorage.getConfigurations(handbag)) {
                 if (!HandbagOutputs.matches(configuration, requested)) continue;
 
-                count += configuration.getMaterialCount();
                 ItemStack material = configuration.getMaterial();
-                int materialIndex = findMaterial(materials, material);
-                if (materialIndex < 0) {
-                    materialIndex = materials.size();
-                    materials.add(material);
-                    links.add(new HashSet<>());
+                AvailableMaterial available = findMaterial(materials, material);
+                if (available == null) {
+                    available = new AvailableMaterial(material);
+                    materials.add(available);
                     // The tools already count loose output items and other containers
                     if (!HandbagStorage.sameMaterial(material, requested)) {
-                        count += HandbagMaterialSupply.extractInventory(player, material, Integer.MAX_VALUE, true);
+                        available.inventoryCount = HandbagMaterialSupply.extractInventory(
+                            player, material, Integer.MAX_VALUE, true);
                     }
                 }
 
                 String link = HandbagMaterialSupply.getNetworkLink(handbag);
-                if (includeNetwork && !link.isEmpty() && !links.get(materialIndex).contains(link)) {
-                    int available = HandbagMaterialSupply.extractNetwork(
-                        player, handbag, material, Integer.MAX_VALUE, true);
-                    if (available > 0) {
-                        links.get(materialIndex).add(link);
-                        count += available;
-                    }
+                if (includeNetwork && !link.isEmpty() && !available.networkCounts.containsKey(link)) {
+                    available.networkCounts.put(link, (long) HandbagMaterialSupply.extractNetwork(
+                        player, handbag, material, Integer.MAX_VALUE, true));
                 }
+
+                long networkCount = includeNetwork ? available.networkCounts.getOrDefault(link, 0L) : 0;
+                MaterialAmount balance = configuration.getMaterialAmount();
+                MaterialAmount cost = configuration.getMaterialCost();
+                int outputs = balance.add(networkCount + available.inventoryCount).getOutputCount(cost);
+                if (outputs > 0) {
+                    // Account for source items that refill this entry after its final output
+                    if (networkCount > 0) available.networkCounts.put(link, 0L);
+
+                    available.inventoryCount = 0;
+                }
+
+                count += outputs;
+                if (count >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
             }
         }
 
         return (int) Math.min(Integer.MAX_VALUE, count);
     }
 
-    private static int findMaterial(List<ItemStack> materials, ItemStack material) {
-        for (int index = 0; index < materials.size(); index++) {
-            if (HandbagStorage.sameMaterial(materials.get(index), material)) return index;
+    private static AvailableMaterial findMaterial(List<AvailableMaterial> materials, ItemStack material) {
+        for (AvailableMaterial available : materials) {
+            if (HandbagStorage.sameMaterial(available.material, material)) return available;
         }
 
-        return -1;
+        return null;
     }
 
     public static int extract(EntityPlayer player, ItemStack requested, int amount) {
@@ -131,23 +139,17 @@ public final class HandbagOutputSupply {
                 return Math.min(amount, HandbagSupplyCache.getCount(player, result));
             }
 
-            long available = configuration.getMaterialCount();
-            if (player != null && !player.world.isRemote) {
-                ItemStack material = configuration.getMaterial();
-                available += HandbagMaterialSupply.extractNetwork(player, handbag, material, amount, true);
-                available += HandbagMaterialSupply.extractInventory(player, material, amount, true);
-            }
-
-            return (int) Math.min(amount, available);
+            return countConfiguration(player, handbag, configuration, amount);
         }
 
         if (player != null && player.world.isRemote) return 0;
 
+        int available = countConfiguration(player, handbag, configuration, amount);
         int extracted = 0;
-        while (extracted < amount) {
+        while (extracted < available) {
             if (player != null) HandbagMaterialSupply.refill(player, handbag, index);
 
-            int consumed = HandbagStorage.consumeMaterial(handbag, index, amount - extracted);
+            int consumed = HandbagStorage.consumeMaterial(handbag, index, available - extracted);
             if (consumed <= 0) break;
 
             extracted += consumed;
@@ -160,5 +162,31 @@ public final class HandbagOutputSupply {
         }
 
         return extracted;
+    }
+
+    private static int countConfiguration(EntityPlayer player, ItemStack handbag,
+            HandbagConfiguration configuration, int amount) {
+        MaterialAmount balance = configuration.getMaterialAmount();
+        MaterialAmount cost = configuration.getMaterialCost();
+        if (player == null) return Math.min(amount, balance.getOutputCount(cost));
+
+        ItemStack material = configuration.getMaterial();
+        long requested = balance.getRequiredMaterial(cost, amount);
+        int network = HandbagMaterialSupply.extractNetwork(
+            player, handbag, material, (int) Math.min(Integer.MAX_VALUE, requested), true);
+        int inventory = HandbagMaterialSupply.extractInventory(
+            player, material, (int) Math.min(Integer.MAX_VALUE, requested - network), true);
+        return Math.min(amount, balance.add((long) network + inventory).getOutputCount(cost));
+    }
+
+    private static final class AvailableMaterial {
+
+        private final ItemStack material;
+        private final Map<String, Long> networkCounts = new HashMap<>();
+        private long inventoryCount;
+
+        private AvailableMaterial(ItemStack material) {
+            this.material = material;
+        }
     }
 }

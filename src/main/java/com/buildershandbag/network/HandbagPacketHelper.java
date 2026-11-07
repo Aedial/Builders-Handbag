@@ -36,7 +36,8 @@ final class HandbagPacketHelper {
     }
 
     static void returnStoredMaterial(EntityPlayer player, HandbagConfiguration configuration) {
-        int remaining = configuration.getMaterialCount();
+        // Return whole materials and void the removed configuration's fractional remainder
+        int remaining = configuration.getMaterialAmount().getWholeCount();
         while (remaining > 0) {
             ItemStack material = configuration.getMaterial();
             if (material.isEmpty()) return;

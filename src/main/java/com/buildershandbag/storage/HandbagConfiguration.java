@@ -17,7 +17,7 @@ public final class HandbagConfiguration {
     private final NBTTagCompound materialData;
     private final NBTTagCompound resultData;
     private final HandbagIntegration integration;
-    private final int materialCount;
+    private final MaterialAmount materialAmount;
 
     public HandbagConfiguration(ItemStack material, ItemStack result, HandbagIntegration integration, int materialCount) {
         this(copySingle(material).writeToNBT(new NBTTagCompound()),
@@ -26,12 +26,17 @@ public final class HandbagConfiguration {
 
     public HandbagConfiguration(NBTTagCompound materialData, NBTTagCompound resultData,
             HandbagIntegration integration, int materialCount) {
+        this(materialData, resultData, integration, new MaterialAmount(Math.max(0, materialCount), 1));
+    }
+
+    public HandbagConfiguration(NBTTagCompound materialData, NBTTagCompound resultData,
+            HandbagIntegration integration, MaterialAmount materialAmount) {
         this.materialData = materialData.copy();
         this.resultData = resultData.copy();
         this.material = copySingle(new ItemStack(materialData.copy()));
         this.result = copySingle(new ItemStack(resultData.copy()));
         this.integration = integration;
-        this.materialCount = Math.max(0, materialCount);
+        this.materialAmount = materialAmount;
     }
 
     public ItemStack getMaterial() {
@@ -58,12 +63,28 @@ public final class HandbagConfiguration {
         return integration;
     }
 
-    public int getMaterialCount() {
-        return materialCount;
+    public float getMaterialCount() {
+        return materialAmount.getCount();
+    }
+
+    public MaterialAmount getMaterialAmount() {
+        return materialAmount;
+    }
+
+    public MaterialAmount getMaterialCost() {
+        return integration.getMaterialCost(getMaterial(), getResult());
+    }
+
+    public int getOutputCount() {
+        return materialAmount.getOutputCount(getMaterialCost());
     }
 
     public HandbagConfiguration withMaterialCount(int count) {
         return new HandbagConfiguration(materialData, resultData, integration, count);
+    }
+
+    public HandbagConfiguration withMaterialAmount(MaterialAmount amount) {
+        return new HandbagConfiguration(materialData, resultData, integration, amount);
     }
 
     private static ItemStack copySingle(ItemStack stack) {

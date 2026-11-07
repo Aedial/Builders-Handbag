@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -15,6 +16,7 @@ import com.elytradev.architecture.common.shape.EnumShape;
 import com.elytradev.architecture.common.tile.TileShape;
 
 import com.buildershandbag.storage.HandbagConfiguration;
+import com.buildershandbag.storage.MaterialAmount;
 
 
 /**
@@ -25,11 +27,19 @@ public final class ArchitectureCraftIntegration {
     private ArchitectureCraftIntegration() {
     }
 
-    // TODO: If there is demand, we might consider fractional material cost
-    //       (aligning with ArchitectureCraft's own cost calculations),
-    //       which would require custom rendering, decoupling ItemStack
-    //       from count, and custom slot count rendering. Also, I'm not
-    //       sure how ArchitectureCraft calculates the cost of a shape.
+    public static MaterialAmount getMaterialCost(ItemStack material, ItemStack result) {
+        if (!result.hasTagCompound() || !result.getTagCompound().hasKey("Shape")) return MaterialAmount.BLOCK;
+
+        int shapeId = result.getTagCompound().getInteger("Shape");
+        for (EnumShape shape : EnumShape.values()) {
+            if (shape.id != shapeId || shape.materialUsed <= 0 || shape.itemsProduced <= 0) continue;
+
+            int factor = Block.getBlockFromItem(material.getItem()) instanceof BlockSlab ? 2 : 1;
+            return new MaterialAmount((long) factor * shape.materialUsed, shape.itemsProduced);
+        }
+
+        return MaterialAmount.BLOCK;
+    }
 
     public static void addOptions(ItemStack material, List<HandbagConfigurationOption> options) {
         if (!(material.getItem() instanceof ItemBlock)) return;

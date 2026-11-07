@@ -272,7 +272,7 @@ public class GuiHandbag extends GuiContainer {
             HandbagConfiguration configuration = configurations.get(index);
             int x = CONFIGURATION_X + index % CONFIGURATION_COLUMNS * SLOT_SIZE;
             int y = CONFIGURATION_Y + index / CONFIGURATION_COLUMNS * SLOT_SIZE;
-            String count = configuration.getMaterialCount() > 0 ? String.valueOf(configuration.getMaterialCount()) : "";
+            String count = configuration.getMaterialCount() > 0 ? configuration.getMaterialAmount().toString() : "";
             boolean available = configuration.isAvailable();
 
             if (!available) {
@@ -397,7 +397,20 @@ public class GuiHandbag extends GuiContainer {
             itemRender.renderItemAndEffectIntoGUI(stack, x, y);
         }
 
-        itemRender.renderItemOverlayIntoGUI(fontRenderer, stack, x, y, overlay);
+        int countWidth = fontRenderer.getStringWidth(overlay);
+        itemRender.renderItemOverlayIntoGUI(fontRenderer, stack, x, y, "");
+
+        float scale = 0.5f;
+        GlStateManager.disableLighting();
+        GlStateManager.disableDepth();
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x + 16, y + 16 - fontRenderer.FONT_HEIGHT * scale, 200.0F);
+        GlStateManager.scale(scale, scale, 1.0F);
+        fontRenderer.drawStringWithShadow(overlay, -countWidth, 0, 0xFFFFFF);
+        GlStateManager.popMatrix();
+        GlStateManager.enableDepth();
+        GlStateManager.enableLighting();
+
         RenderHelper.disableStandardItemLighting();
         GlStateManager.popMatrix();
     }
@@ -521,8 +534,13 @@ public class GuiHandbag extends GuiContainer {
         lines.add("");
         lines.add(I18n.format(
             "gui.buildershandbag.configuration.stored",
-            configuration.getMaterialCount(),
+            configuration.getMaterialAmount(),
             material.isEmpty() ? configuration.getMaterialData().getString("id") : material.getDisplayName()));
+
+        if (available && configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT) {
+            lines.add(I18n.format("gui.buildershandbag.configuration.cost", configuration.getMaterialCost()));
+            lines.add(I18n.format("gui.buildershandbag.configuration.outputs", configuration.getOutputCount()));
+        }
 
         if (movingConfiguration == index) {
             lines.add(I18n.format("gui.buildershandbag.configuration.deselect"));
@@ -534,6 +552,12 @@ public class GuiHandbag extends GuiContainer {
             lines.add(I18n.format("gui.buildershandbag.configuration.remove"));
         }
 
+        if (configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT
+                && configuration.getMaterialAmount().getRemainder() > 0) {
+            lines.add(I18n.format("gui.buildershandbag.configuration.remove_remainder",
+                configuration.getMaterialAmount().getRemainderText()));
+        }
+
         drawHoveringText(lines, mouseX, mouseY);
     }
 
@@ -542,6 +566,11 @@ public class GuiHandbag extends GuiContainer {
         if (player == null) return;
 
         List<String> lines = getItemTooltip(option.getResult());
+        if (option.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT) {
+            HandbagConfiguration configuration = option.createConfiguration(container.getConfigurationMaterial());
+            lines.add(I18n.format("gui.buildershandbag.configuration.cost", configuration.getMaterialCost()));
+        }
+
         lines.add("");
         lines.add(I18n.format("gui.buildershandbag.option.add"));
 
