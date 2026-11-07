@@ -8,8 +8,6 @@ import java.util.Map;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
-import com.buildershandbag.item.ItemHandbag;
-
 
 /**
  * Configured outputs available across the player's carried handbags.
@@ -20,15 +18,7 @@ public final class HandbagOutputSupply {
     }
 
     public static List<ItemStack> getHandbags(EntityPlayer player) {
-        List<ItemStack> handbags = new ArrayList<>();
-        for (ItemStack stack : player.inventory.mainInventory) {
-            if (stack.getItem() instanceof ItemHandbag) handbags.add(stack);
-        }
-        for (ItemStack stack : player.inventory.offHandInventory) {
-            if (stack.getItem() instanceof ItemHandbag) handbags.add(stack);
-        }
-
-        return handbags;
+        return CarriedHandbags.get(player);
     }
 
     public static boolean isFirstHandbag(EntityPlayer player, ItemStack handbag) {

@@ -42,6 +42,7 @@ import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.network.HandbagMessages;
 import com.buildershandbag.network.HandbagNetwork;
 import com.buildershandbag.network.PacketHandbagSync;
+import com.buildershandbag.storage.CarriedHandbags;
 import com.buildershandbag.storage.HandbagConfiguration;
 import com.buildershandbag.storage.HandbagStorage;
 import com.buildershandbag.storage.HandbagMaterialSupply;
@@ -91,6 +92,7 @@ public class ItemHandbag extends ItemBlock {
         if (handler instanceof HandbagItemHandler) {
             ((HandbagItemHandler) handler).setPlayer(entity instanceof EntityPlayer ? (EntityPlayer) entity : null);
         }
+        if (entity instanceof EntityPlayer) CarriedHandbags.register((EntityPlayer) entity, stack, slot);
     }
 
     // TODO: Need to figure how we place it on the floor, considering click is placing blocks.
@@ -268,6 +270,18 @@ public class ItemHandbag extends ItemBlock {
         tooltip.add(I18n.format("tooltip.buildershandbag.tooltip", integrationNames));
 
         if (Loader.isModLoaded(AE2_MODID)) addAe2Tooltip(stack, tooltip);
+
+        String pickupKey = HandbagServerConfig.isPickupAbsorptionEnabled()
+            ? "tooltip.buildershandbag.pickup_enabled" : "tooltip.buildershandbag.pickup_disabled";
+        String absorption = I18n.format(pickupKey);
+        if (HandbagServerConfig.isInventoryCleanupEnabled()) {
+            absorption += I18n.format("tooltip.buildershandbag.inventory_cleanup");
+        }
+        tooltip.add(absorption);
+
+        if (HandbagIntegration.BLOCKCRAFTERY.isEnabled() && HandbagServerConfig.isFrameCleanupEnabled()) {
+            tooltip.add(I18n.format("tooltip.buildershandbag.frame_cleanup"));
+        }
 
         tooltip.add("");
 

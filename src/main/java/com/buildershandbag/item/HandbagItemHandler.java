@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
 import com.buildershandbag.storage.HandbagConfiguration;
+import com.buildershandbag.storage.HandbagMatchCache;
 import com.buildershandbag.storage.HandbagOutputs;
 import com.buildershandbag.storage.HandbagOutputSupply;
 import com.buildershandbag.storage.HandbagStorage;
@@ -20,12 +21,14 @@ public final class HandbagItemHandler implements IItemHandler {
 
     private final ItemStack handbag;
     private final HandbagMaterialHandler input;
+    private final HandbagMatchCache matches;
     @Nullable
     private EntityPlayer player;
 
     public HandbagItemHandler(ItemStack handbag) {
         this.handbag = handbag;
         this.input = new HandbagMaterialHandler(handbag);
+        this.matches = new HandbagMatchCache(handbag);
     }
 
     public void setPlayer(@Nullable EntityPlayer player) {
@@ -34,6 +37,10 @@ public final class HandbagItemHandler implements IItemHandler {
 
     public IItemHandler getInput() {
         return input;
+    }
+
+    public HandbagMatchCache getMatches() {
+        return matches;
     }
 
     @Nullable
@@ -100,7 +107,6 @@ public final class HandbagItemHandler implements IItemHandler {
     public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
         if (slot < 0 || slot >= input.getSlots()) return false;
 
-        HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, slot);
-        return configuration != null && HandbagStorage.sameMaterial(configuration.getMaterial(), stack);
+        return input.isItemValid(slot, stack);
     }
 }

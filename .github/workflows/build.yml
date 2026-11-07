@@ -52,7 +52,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ae2-powertools-jar
+          name: jars
           path: build/libs/*.jar
 
       - name: Publish GitHub Release (tags only)

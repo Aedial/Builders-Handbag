@@ -14,6 +14,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Allow the Handbag to refill from sub-inventories, like a bag or /dank/null, with Baubles support.
 - Allow the Handbag to be used as a supplier for Building Gadgets or Better Builders Wands.
 - Add in-world configuration picking on keybind (default: middle-click).
+- Add material re-absorption from dropped items. The handbag will match picked items + do a periodic inventory scan every 30s to reabsorb configured materials into its storage.
 
 ### Fixed
 - Allow removed integrations to still persist their configurations, so that material is not lost if the user temporarily removes a mod or wants to recover the blocks. The material will not be selectable and will render as "invalid" in the GUI, but will be restored once the integration is added back.

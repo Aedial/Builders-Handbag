@@ -70,7 +70,7 @@ public final class HandbagOutputs {
         return HandbagStorage.sameMaterial(withoutTile(first), withoutTile(second));
     }
 
-    private static ItemStack withoutTile(ItemStack stack) {
+    public static ItemStack withoutTile(ItemStack stack) {
         ItemStack result = stack.copy();
         result.removeSubCompound(TILE_TAG);
         ResourceLocation name = result.getItem().getRegistryName();

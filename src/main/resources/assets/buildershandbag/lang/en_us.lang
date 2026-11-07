@@ -39,6 +39,12 @@ buildershandbag.config.server.integrations.ae2_refill=AE2 Refilling
 buildershandbag.config.server.integrations.ae2_refill.tooltip=Refill an empty selected configuration through its AE2 link, if available
 buildershandbag.config.server.behavior.use_old_open=Use old open controls
 buildershandbag.config.server.behavior.use_old_open.tooltip=Allow to use right-click when not targeting a block to open the handbag GUI, instead of shift + right-click only
+buildershandbag.config.server.behavior.pickup_absorption=Pick-up absorption
+buildershandbag.config.server.behavior.pickup_absorption.tooltip=Absorb configured materials and exact configured blocks when the player picks them up
+buildershandbag.config.server.behavior.inventory_cleanup=Periodic inventory cleanup
+buildershandbag.config.server.behavior.inventory_cleanup.tooltip=Absorb exact configured blocks from the player inventory every 30 seconds
+buildershandbag.config.server.behavior.cleanup_blockcraftery_frames=Clean up Blockcraftery frames
+buildershandbag.config.server.behavior.cleanup_blockcraftery_frames.tooltip=Discard matching Blockcraftery frames (clean-up)
 
 # Tooltips
 tooltip.buildershandbag.tooltip=§bAllows you to store and select multiple configurations for decorative blocks. Supports %s
@@ -50,6 +56,10 @@ tooltip.buildershandbag.selected=Selected: §b%s§7 (§a%s§7 stored). §bRight-
 tooltip.buildershandbag.no_selection=§eNo configuration selected. §bSneak-scroll§e to select one
 tooltip.buildershandbag.no_available_configurations=No configurations available. Open the handbag to recover materials
 tooltip.buildershandbag.provides=Can provide configured blocks for Better Builder's Wands and Building Gadgets
+tooltip.buildershandbag.frame_cleanup=Matching Blockcraftery frames will be absorbed and discarded
+tooltip.buildershandbag.pickup_enabled=Pick-up §aenabled§7
+tooltip.buildershandbag.pickup_disabled=Pick-up §cdisabled§7
+tooltip.buildershandbag.inventory_cleanup= / Inventory cleanup every §a30s§7
 
 # Messages
 message.buildershandbag.no_configuration=This handbag has no stored configurations

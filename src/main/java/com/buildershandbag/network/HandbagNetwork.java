@@ -31,6 +31,9 @@ public final class HandbagNetwork {
     public static SimpleNetworkWrapper INSTANCE;
     private static final List<PendingTileSync> PENDING_TILE_SYNCS = new ArrayList<>();
     private static int lastEnabledIntegrations = -1;
+    private static boolean lastCleanupFrames;
+    private static boolean lastPickupAbsorption;
+    private static boolean lastInventoryCleanup;
 
     private HandbagNetwork() {
     }
@@ -58,7 +61,7 @@ public final class HandbagNetwork {
         // Server -> client: applies placed tile data and refreshes its rendered chunk.
         INSTANCE.registerMessage(PacketBlockTileSync.Handler.class, PacketBlockTileSync.class, packetId++, Side.CLIENT);
 
-        // Server -> client: supplies enabled integrations for selection and rendering
+        // Server -> client: supplies enabled integrations for selection and rendering, plus behavior for tooltips
         INSTANCE.registerMessage(
             PacketHandbagIntegrationsSync.Handler.class, PacketHandbagIntegrationsSync.class, packetId++, Side.CLIENT);
 
@@ -75,18 +78,9 @@ public final class HandbagNetwork {
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.player instanceof EntityPlayerMP)) return;
 
-        INSTANCE.sendTo(new PacketHandbagIntegrationsSync(getEnabledIntegrationMask()), (EntityPlayerMP) event.player);
-    }
-
-    private static int getEnabledIntegrationMask() {
-        int enabledIntegrations = 0;
-        for (HandbagIntegration integration : HandbagIntegration.values()) {
-            if (HandbagServerConfig.integrations.isIntegrationEnabled(integration)) {
-                enabledIntegrations |= 1 << integration.ordinal();
-            }
-        }
-
-        return enabledIntegrations;
+        INSTANCE.sendTo(new PacketHandbagIntegrationsSync(HandbagIntegration.getEnabledMask(),
+            HandbagServerConfig.isFrameCleanupEnabled(), HandbagServerConfig.isPickupAbsorptionEnabled(),
+            HandbagServerConfig.isInventoryCleanupEnabled()), (EntityPlayerMP) event.player);
     }
 
     /**
@@ -107,10 +101,18 @@ public final class HandbagNetwork {
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
-        int enabledIntegrations = getEnabledIntegrationMask();
-        if (enabledIntegrations != lastEnabledIntegrations) {
+        int enabledIntegrations = HandbagIntegration.getEnabledMask();
+        boolean cleanupFrames = HandbagServerConfig.isFrameCleanupEnabled();
+        boolean pickupAbsorption = HandbagServerConfig.isPickupAbsorptionEnabled();
+        boolean inventoryCleanup = HandbagServerConfig.isInventoryCleanupEnabled();
+        if (enabledIntegrations != lastEnabledIntegrations || cleanupFrames != lastCleanupFrames
+                || pickupAbsorption != lastPickupAbsorption || inventoryCleanup != lastInventoryCleanup) {
             lastEnabledIntegrations = enabledIntegrations;
-            INSTANCE.sendToAll(new PacketHandbagIntegrationsSync(enabledIntegrations));
+            lastCleanupFrames = cleanupFrames;
+            lastPickupAbsorption = pickupAbsorption;
+            lastInventoryCleanup = inventoryCleanup;
+            INSTANCE.sendToAll(new PacketHandbagIntegrationsSync(
+                enabledIntegrations, cleanupFrames, pickupAbsorption, inventoryCleanup));
         }
 
         if (PENDING_TILE_SYNCS.isEmpty()) return;

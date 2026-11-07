@@ -6,15 +6,18 @@ import java.util.List;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import com.buildershandbag.Tags;
 import com.buildershandbag.integration.HandbagIntegration;
 
 
 /**
- * Server-side switches for optional integrations.
+ * Server-side switches for optional integrations and automatic material recovery.
  */
 @Config(modid = Tags.MODID, name = Tags.MODID + "/server", category = "server")
 @Config.LangKey("buildershandbag.config.server")
@@ -29,8 +32,33 @@ public final class HandbagServerConfig {
 
     @Config.LangKey(BEHAVIOR_PREFIX)
     public static final Behavior behavior = new Behavior();
+    private static boolean clientCleanupFrames = true;
+    private static boolean clientPickupAbsorption = true;
+    private static boolean clientInventoryCleanup = true;
 
     private HandbagServerConfig() {
+    }
+
+    public static boolean isFrameCleanupEnabled() {
+        return FMLCommonHandler.instance().getEffectiveSide().isServer()
+            ? behavior.cleanupBlockcrafteryFrames : clientCleanupFrames;
+    }
+
+    public static boolean isPickupAbsorptionEnabled() {
+        return FMLCommonHandler.instance().getEffectiveSide().isServer()
+            ? behavior.enablePickupAbsorption : clientPickupAbsorption;
+    }
+
+    public static boolean isInventoryCleanupEnabled() {
+        return FMLCommonHandler.instance().getEffectiveSide().isServer()
+            ? behavior.enableInventoryCleanup : clientInventoryCleanup;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void setClientBehavior(boolean cleanupFrames, boolean pickupAbsorption, boolean inventoryCleanup) {
+        clientCleanupFrames = cleanupFrames;
+        clientPickupAbsorption = pickupAbsorption;
+        clientInventoryCleanup = inventoryCleanup;
     }
 
     public static final class Integrations {
@@ -78,6 +106,18 @@ public final class HandbagServerConfig {
     }
 
     public static final class Behavior {
+
+        @Config.Comment("Absorb configured materials and exact configured blocks when the player picks them up")
+        @Config.LangKey(BEHAVIOR_PREFIX + ".pickup_absorption")
+        public boolean enablePickupAbsorption = true;
+
+        @Config.Comment("Absorb exact configured blocks from the player inventory every 30 seconds")
+        @Config.LangKey(BEHAVIOR_PREFIX + ".inventory_cleanup")
+        public boolean enableInventoryCleanup = true;
+
+        @Config.Comment("Absorb and discard matching Blockcraftery frames (clean-up)")
+        @Config.LangKey(BEHAVIOR_PREFIX + ".cleanup_blockcraftery_frames")
+        public boolean cleanupBlockcrafteryFrames = true;
 
         @Config.Comment("Allow to use right-click when not targeting a block to open the handbag GUI, instead of shift + right-click only")
         @Config.LangKey(BEHAVIOR_PREFIX + ".use_old_open")

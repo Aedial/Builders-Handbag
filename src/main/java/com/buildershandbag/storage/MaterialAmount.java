@@ -9,6 +9,7 @@ import java.util.Locale;
 public final class MaterialAmount {
 
     public static final MaterialAmount BLOCK = new MaterialAmount(1, 1);
+    public static final MaterialAmount ZERO = new MaterialAmount(0, 1);
 
     private final long numerator;
     private final int denominator;
@@ -16,9 +17,8 @@ public final class MaterialAmount {
     public MaterialAmount(long numerator, int denominator) {
         if (numerator < 0 || denominator <= 0) throw new IllegalArgumentException("Invalid material amount");
 
-        int divisor = greatestCommonDivisor(numerator, denominator);
-        this.numerator = numerator / divisor;
-        this.denominator = denominator / divisor;
+        this.numerator = numerator;
+        this.denominator = denominator;
     }
 
     public int getWholeCount() {
@@ -37,12 +37,32 @@ public final class MaterialAmount {
         return denominator;
     }
 
+    public boolean isEmpty() {
+        return numerator == 0;
+    }
+
     public int getFreeSpace(int capacity) {
         return Math.max(0, capacity - getWholeCount());
     }
 
     public MaterialAmount add(long count) {
         return new MaterialAmount(numerator + count * denominator, denominator);
+    }
+
+    public MaterialAmount add(MaterialAmount amount, int count) {
+        int units = Math.max(denominator, amount.denominator);
+        long total = numeratorIn(units) + amount.numeratorIn(units) * count;
+        return new MaterialAmount(total, units);
+    }
+
+    public int getInsertCount(MaterialAmount amount, int capacity) {
+        if (amount.numerator == 0) return Integer.MAX_VALUE;
+
+        long space = ((long) (capacity + 1) * denominator - numerator) * amount.denominator;
+        if (space <= 0) return 0;
+
+        long divisor = denominator * amount.numerator;
+        return (int) Math.min(Integer.MAX_VALUE, (space - 1) / divisor);
     }
 
     public int getOutputCount(MaterialAmount cost) {
@@ -59,10 +79,9 @@ public final class MaterialAmount {
     }
 
     public MaterialAmount consume(MaterialAmount cost, int outputs) {
-        int divisor = greatestCommonDivisor(denominator, cost.denominator);
-        int multiplier = cost.denominator / divisor;
-        long remaining = numerator * multiplier - cost.numerator * outputs * (denominator / divisor);
-        return new MaterialAmount(remaining, denominator * multiplier);
+        int units = Math.max(denominator, cost.denominator);
+        long remaining = numeratorIn(units) - cost.numeratorIn(units) * outputs;
+        return new MaterialAmount(remaining, units);
     }
 
     public String getRemainderText() {
@@ -78,14 +97,12 @@ public final class MaterialAmount {
         return String.format(Locale.ROOT, "%.2f", count).replaceFirst("\\.?0+$", "");
     }
 
-    private static int greatestCommonDivisor(long numerator, int denominator) {
-        long divisor = denominator;
-        while (divisor != 0) {
-            long remainder = numerator % divisor;
-            numerator = divisor;
-            divisor = remainder;
+    private long numeratorIn(int units) {
+        long scaled = numerator * units;
+        if (units <= 0 || scaled % denominator != 0) {
+            throw new IllegalArgumentException("Incompatible material denominator");
         }
 
-        return (int) numerator;
+        return scaled / denominator;
     }
 }

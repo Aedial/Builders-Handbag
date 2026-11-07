@@ -105,6 +105,7 @@ public final class HandbagStorage {
 
         configurations.add(configuration.withMaterialCount(0));
         writeConfigurations(handbag, configurations);
+        HandbagMatchCache.invalidate(handbag);
 
         return true;
     }
@@ -123,6 +124,7 @@ public final class HandbagStorage {
         }
 
         writeConfigurations(handbag, configurations);
+        HandbagMatchCache.invalidate(handbag);
         setSelected(handbag, selected);
 
         return removed;
@@ -143,6 +145,7 @@ public final class HandbagStorage {
         HandbagConfiguration moved = configurations.remove(from);
         configurations.add(destination, moved);
         writeConfigurations(handbag, configurations);
+        HandbagMatchCache.invalidate(handbag);
 
         if (selected == from) {
             selected = destination;
@@ -182,14 +185,29 @@ public final class HandbagStorage {
     }
 
     public static int insertMaterial(ItemStack handbag, int index, ItemStack material, boolean simulate) {
+        if (material.isEmpty()) return 0;
+
+        HandbagMatchCache cache = HandbagMatchCache.get(handbag);
+        if (cache == null) return 0;
+
+        MaterialAmount amount = cache.getAmount(index, HandbagStackKey.probeMaterial(material),
+            HandbagStackKey.probeOutput(material), true);
+        return insertMaterial(handbag, index, material.getCount(), amount, simulate);
+    }
+
+    public static int insertMaterial(ItemStack handbag, int index, int count,
+            @Nullable MaterialAmount amount, boolean simulate) {
+        if (count <= 0 || amount == null) return 0;
+
         HandbagConfiguration configuration = getConfiguration(handbag, index);
-        if (configuration == null || !sameMaterial(configuration.getMaterial(), material)) return 0;
+        if (configuration == null || !configuration.isAvailable()) return 0;
+        if (amount.isEmpty()) return count;
 
         MaterialAmount balance = configuration.getMaterialAmount();
-        int accepted = Math.min(material.getCount(), balance.getFreeSpace(MATERIAL_CAPACITY));
+        int accepted = Math.min(count, balance.getInsertCount(amount, MATERIAL_CAPACITY));
         if (accepted <= 0 || simulate) return Math.max(0, accepted);
 
-        replaceConfiguration(handbag, index, configuration.withMaterialAmount(balance.add(accepted)));
+        replaceConfiguration(handbag, index, configuration.withMaterialAmount(balance.add(amount, accepted)));
         return accepted;
     }
 
@@ -233,6 +251,7 @@ public final class HandbagStorage {
         if (stackTag == null) stackTag = new NBTTagCompound();
         stackTag.setTag(NBT_ROOT, data == null ? new NBTTagCompound() : data.copy());
         handbag.setTagCompound(stackTag);
+        HandbagMatchCache.invalidate(handbag);
     }
 
     @Nullable
@@ -271,7 +290,7 @@ public final class HandbagStorage {
             tag.setString(NBT_INTEGRATION, configuration.getIntegration().getModID());
             MaterialAmount amount = configuration.getMaterialAmount();
             tag.setInteger(NBT_MATERIAL_COUNT, Math.min(MATERIAL_CAPACITY, amount.getWholeCount()));
-            if (amount.getRemainder() > 0) {
+            if (amount.getDenominator() > 1) {
                 tag.setInteger(NBT_MATERIAL_REMAINDER, amount.getRemainder());
                 tag.setInteger(NBT_MATERIAL_DENOMINATOR, amount.getDenominator());
             }

@@ -1,5 +1,7 @@
 package com.buildershandbag.integration;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -26,7 +28,15 @@ public enum HandbagIntegration {
             return getArchitectureCraftCost(material, result);
         }
     },
-    BLOCKCRAFTERY("blockcraftery");
+    BLOCKCRAFTERY("blockcraftery") {
+        @Override
+        @Nullable
+        public MaterialAmount getReturnedMaterial(ItemStack material, ItemStack result) {
+            // BlockCraftery returns frame (BlockCraftery) + original block (not BlockCraftery)
+            // This integration only matches the frame part, ignoring the original block
+            return HandbagServerConfig.isFrameCleanupEnabled() ? MaterialAmount.ZERO : null;
+        }
+    };
 
     public static final String CHISEL_MODID = "chisel";
     public static final String ARCHITECTURECRAFT_MODID = "architecturecraft";
@@ -46,6 +56,20 @@ public enum HandbagIntegration {
 
     public MaterialAmount getMaterialCost(ItemStack material, ItemStack result) {
         return MaterialAmount.BLOCK;
+    }
+
+    @Nullable
+    public MaterialAmount getReturnedMaterial(ItemStack material, ItemStack result) {
+        return getMaterialCost(material, result);
+    }
+
+    public static int getEnabledMask() {
+        int mask = 0;
+        for (HandbagIntegration integration : values()) {
+            if (integration.isEnabled()) mask |= 1 << integration.ordinal();
+        }
+
+        return mask;
     }
 
     @Optional.Method(modid = ARCHITECTURECRAFT_MODID)

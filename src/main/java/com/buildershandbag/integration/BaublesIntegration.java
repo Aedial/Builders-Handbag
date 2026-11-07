@@ -1,5 +1,7 @@
 package com.buildershandbag.integration;
 
+import java.util.function.Predicate;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
@@ -25,5 +27,11 @@ public final class BaublesIntegration {
         IBaublesItemHandler inventory = BaublesApi.getBaublesHandler(player);
         return MaterialInventoryHelper.extractFromBags(
             inventory, material, amount, simulate, slot -> inventory.setChanged(slot, true));
+    }
+
+    public static int extractMatching(EntityPlayer player, Predicate<ItemStack> matches, int amount, boolean simulate) {
+        IBaublesItemHandler inventory = BaublesApi.getBaublesHandler(player);
+        return MaterialInventoryHelper.extractMatchingFromBags(
+            inventory, matches, amount, simulate, slot -> inventory.setChanged(slot, true));
     }
 }
