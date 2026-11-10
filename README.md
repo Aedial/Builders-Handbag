@@ -22,9 +22,12 @@ Each can be enabled or disabled in the server config.
 - **Old Open Behavior**: Restore the old right-click behavior for opening the handbag GUI, instead of requiring shift-click. This behavior can open the GUI at inopportune times, but may be preferred by some players.
 - **Pick-up Absorption**: Automatically absorb configured materials and exact configured blocks when the player picks them up.
 - **Inventory Cleanup**: Periodically scan the player's inventory to reabsorb configured materials into the handbag's storage.
+- **Mixin Options**: Enable or disable mixins for Building Gadgets and Better Builders Wands integrations. Requires a restart to take effect.
 
 ## Mixin use
 The mod uses mixins to allow Better Builders Wands and Building Gadgets to source materials from the handbag's internal inventory and apply them correctly during block placement. Neither of these mods support the necessary NBT matching, which is necessary for ArchitectureCraft/Blockcraftery integrations.
+
+You can disable these mixins in the server config if you do not want the handbag to interact with Building Gadgets or Better Builders Wands, or the mixins do not work with your version of the mods.
 
 ## Installation
 Add the mod to both client and server.

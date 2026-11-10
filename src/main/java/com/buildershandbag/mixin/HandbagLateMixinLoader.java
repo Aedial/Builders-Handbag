@@ -3,9 +3,14 @@ package com.buildershandbag.mixin;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.common.Loader;
 
 import zone.rong.mixinbooter.ILateMixinLoader;
+
+import com.buildershandbag.Tags;
+import com.buildershandbag.config.HandbagServerConfig;
 
 
 public final class HandbagLateMixinLoader implements ILateMixinLoader {
@@ -13,6 +18,7 @@ public final class HandbagLateMixinLoader implements ILateMixinLoader {
     private static final String PREFIX = "mixins.buildershandbag.";
 
     public HandbagLateMixinLoader() {
+        ConfigManager.sync(Tags.MODID, Config.Type.INSTANCE);
     }
 
     @Override
@@ -23,7 +29,12 @@ public final class HandbagLateMixinLoader implements ILateMixinLoader {
 
     @Override
     public boolean shouldMixinConfigQueue(String config) {
-        if (config.equals(PREFIX + "buildinggadgets.json")) return Loader.isModLoaded("buildinggadgets");
+        if (config.equals(PREFIX + "buildinggadgets.json")) {
+            return HandbagServerConfig.mixin.enableBuildingGadgets && Loader.isModLoaded("buildinggadgets");
+        }
+
+        if (!HandbagServerConfig.mixin.enableBetterBuildersWands) return false;
+
         if (config.equals(PREFIX + "bbw.json")) return Loader.isModLoaded("betterbuilderswands");
         if (config.equals(PREFIX + "bbwbase.json")) {
             return Loader.isModLoaded("betterbuilderswands") && !Loader.isModLoaded("betterbuilderswandsfix");

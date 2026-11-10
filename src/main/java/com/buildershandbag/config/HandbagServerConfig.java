@@ -17,7 +17,7 @@ import com.buildershandbag.integration.HandbagIntegration;
 
 
 /**
- * Server-side switches for optional integrations and automatic material recovery.
+ * Server-side switches for optional integrations, automatic material recovery, and mixins.
  */
 @Config(modid = Tags.MODID, name = Tags.MODID + "/server", category = "server")
 @Config.LangKey("buildershandbag.config.server")
@@ -26,12 +26,17 @@ public final class HandbagServerConfig {
     private static final String PREFIX = "buildershandbag.config.server.";
     private static final String INTEGRATIONS_PREFIX = PREFIX + "integrations";
     private static final String BEHAVIOR_PREFIX = PREFIX + "behavior";
+    private static final String MIXIN_PREFIX = PREFIX + "mixin";
 
     @Config.LangKey(INTEGRATIONS_PREFIX)
     public static final Integrations integrations = new Integrations();
 
     @Config.LangKey(BEHAVIOR_PREFIX)
     public static final Behavior behavior = new Behavior();
+
+    @Config.LangKey(MIXIN_PREFIX)
+    public static final Mixin mixin = new Mixin();
+
     private static boolean clientCleanupFrames = true;
     private static boolean clientPickupAbsorption = true;
     private static boolean clientInventoryCleanup = true;
@@ -122,6 +127,22 @@ public final class HandbagServerConfig {
         @Config.Comment("Allow to use right-click when not targeting a block to open the handbag GUI, instead of shift + right-click only")
         @Config.LangKey(BEHAVIOR_PREFIX + ".use_old_open")
         public boolean useOldOpen = false;
+    }
+
+    /**
+     * Startup switches for Building Gadgets and Better Builders Wands mixins.
+     */
+    public static final class Mixin {
+
+        @Config.Comment("Enable the Building Gadgets handbag integration mixins")
+        @Config.LangKey(MIXIN_PREFIX + ".buildinggadgets")
+        @Config.RequiresMcRestart
+        public boolean enableBuildingGadgets = true;
+
+        @Config.Comment("Enable the Better Builders Wands handbag integration mixins, including Better Builders Wands Fix")
+        @Config.LangKey(MIXIN_PREFIX + ".betterbuilderswands")
+        @Config.RequiresMcRestart
+        public boolean enableBetterBuildersWands = true;
     }
 
     @Mod.EventBusSubscriber(modid = Tags.MODID)
