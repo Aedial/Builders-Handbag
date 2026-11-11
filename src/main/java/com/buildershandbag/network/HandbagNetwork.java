@@ -72,6 +72,10 @@ public final class HandbagNetwork {
         INSTANCE.registerMessage(
             PacketPickHandbagConfiguration.Handler.class, PacketPickHandbagConfiguration.class,
             packetId++, Side.SERVER);
+
+        // Client -> server: cycles the placement mode from the handbag GUI
+        INSTANCE.registerMessage(
+            PacketCycleHandbagMode.Handler.class, PacketCycleHandbagMode.class, packetId++, Side.SERVER);
     }
 
     @SubscribeEvent

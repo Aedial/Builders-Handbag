@@ -118,7 +118,20 @@ public class ItemHandbag extends ItemBlock {
         }
         if (world.isRemote) return EnumActionResult.SUCCESS;
 
-        return placeConfiguration(player, world, pos, hand, side, hitX, hitY, hitZ);
+        ItemStack handbag = player.getHeldItem(hand);
+        boolean selectionChanged = false;
+        if (HandbagStorage.getMode(handbag) == HandbagMode.RANDOM) {
+            int previous = HandbagStorage.getSelected(handbag);
+            selectionChanged = HandbagStorage.selectRandom(handbag, world.rand) != previous;
+        }
+
+        EnumActionResult placement = placeConfiguration(player, world, pos, hand, side, hitX, hitY, hitZ);
+        if (placement != EnumActionResult.SUCCESS && selectionChanged) {
+            player.inventory.markDirty();
+            if (player instanceof EntityPlayerMP) syncToClient((EntityPlayerMP) player, hand);
+        }
+
+        return placement;
     }
 
     @Override
@@ -294,18 +307,21 @@ public class ItemHandbag extends ItemBlock {
         tooltip.add(I18n.format("tooltip.buildershandbag.configurations",
             configurations.size(), HandbagStorage.CONFIGURATION_COUNT));
 
+        HandbagMode mode = HandbagStorage.getMode(stack);
         int selected = HandbagStorage.getSelected(stack);
         if (selected >= 0) {
             HandbagConfiguration configuration = configurations.get(selected);
+            String selectedSuffix = mode == HandbagMode.RANDOM ? "selected_random" : "selected";
             tooltip.add(I18n.format(
-                "tooltip.buildershandbag.selected",
+                "tooltip.buildershandbag." + selectedSuffix,
                 configuration.getResult().getDisplayName(),
                 configuration.getMaterialAmount()));
         } else if (configurations.stream().noneMatch(HandbagConfiguration::isAvailable)) {
             tooltip.add(I18n.format("tooltip.buildershandbag.no_available_configurations"));
         } else {
             // may not have selected on first configuration
-            tooltip.add(I18n.format("tooltip.buildershandbag.no_selection"));
+            String selectionKeySuffix = mode == HandbagMode.RANDOM ? "random_selection" : "no_selection";
+            tooltip.add(I18n.format("tooltip.buildershandbag." + selectionKeySuffix));
         }
 
         tooltip.add("");

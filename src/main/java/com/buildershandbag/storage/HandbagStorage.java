@@ -3,6 +3,7 @@ package com.buildershandbag.storage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import javax.annotation.Nullable;
 
@@ -13,6 +14,7 @@ import net.minecraftforge.common.util.Constants;
 
 import com.buildershandbag.container.HandbagLayout;
 import com.buildershandbag.integration.HandbagIntegration;
+import com.buildershandbag.item.HandbagMode;
 
 
 /**
@@ -26,6 +28,7 @@ public final class HandbagStorage {
     private static final String NBT_ROOT = "Handbag";
     private static final String NBT_CONFIGURATIONS = "Configurations";
     private static final String NBT_SELECTED = "Selected";
+    private static final String NBT_MODE = "Mode";
     private static final String NBT_MATERIAL = "Material";
     private static final String NBT_RESULT = "Result";
     private static final String NBT_INTEGRATION = "Integration";
@@ -34,6 +37,18 @@ public final class HandbagStorage {
     private static final String NBT_MATERIAL_DENOMINATOR = "MaterialDenominator";
 
     private HandbagStorage() {
+    }
+
+    public static HandbagMode getMode(ItemStack handbag) {
+        NBTTagCompound root = getRoot(handbag, false);
+        return root == null ? HandbagMode.NORMAL : HandbagMode.fromKey(root.getString(NBT_MODE));
+    }
+
+    public static void setMode(ItemStack handbag, HandbagMode mode) {
+        NBTTagCompound root = getRoot(handbag, true);
+        if (root == null) return;
+
+        root.setString(NBT_MODE, mode.getKey());
     }
 
     public static List<HandbagConfiguration> getConfigurations(ItemStack handbag) {
@@ -182,6 +197,18 @@ public final class HandbagStorage {
 
         setSelected(handbag, -1);
         return -1;
+    }
+
+    public static int selectRandom(ItemStack handbag, Random random) {
+        List<HandbagConfiguration> configurations = getConfigurations(handbag);
+        List<Integer> available = new ArrayList<>();
+        for (int index = 0; index < configurations.size(); index++) {
+            if (configurations.get(index).isAvailable()) available.add(index);
+        }
+
+        int selected = available.isEmpty() ? -1 : available.get(random.nextInt(available.size()));
+        setSelected(handbag, selected);
+        return selected;
     }
 
     public static int insertMaterial(ItemStack handbag, int index, ItemStack material, boolean simulate) {

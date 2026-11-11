@@ -2,6 +2,7 @@ package com.buildershandbag.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import com.buildershandbag.integration.HandbagConfigurationProvider;
 import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.network.HandbagNetwork;
 import com.buildershandbag.network.PacketAddHandbagConfiguration;
+import com.buildershandbag.network.PacketCycleHandbagMode;
 import com.buildershandbag.network.PacketMoveHandbagConfiguration;
 import com.buildershandbag.network.PacketRemoveHandbagConfiguration;
 import com.buildershandbag.storage.HandbagConfiguration;
@@ -63,6 +65,10 @@ public class GuiHandbag extends GuiContainer {
     private static final int CONFIGURATION_Y = 7;
     private static final int CONFIGURATION_COLUMNS = HandbagLayout.CONFIGURATION_COLUMNS;
     private static final int CONFIGURATION_ROWS = HandbagLayout.CONFIGURATION_ROWS;
+
+    private static final int MODE_X = CONFIGURATION_X;
+    private static final int MODE_Y = CONFIGURATION_Y + CONFIGURATION_ROWS * SLOT_SIZE + 1;
+    private static final int MODE_BUTTON = 2;
 
     private static final int MATERIAL_X = 8;
     private static final int MATERIAL_Y = 112;
@@ -159,6 +165,8 @@ public class GuiHandbag extends GuiContainer {
         PREVIOUS_PAGE_BUTTON, PAGE_BUTTON_WIDTH, PAGE_HEIGHT, "<");
     private SmallVanillaButton nextPageButton = new SmallVanillaButton(
         NEXT_PAGE_BUTTON, PAGE_BUTTON_WIDTH, PAGE_HEIGHT, ">");
+    private final HandbagModeButton modeButton = new HandbagModeButton(
+        MODE_BUTTON, () -> HandbagStorage.getMode(getHandbagStack()));
 
 
     public GuiHandbag(ContainerHandbag container) {
@@ -174,9 +182,11 @@ public class GuiHandbag extends GuiContainer {
 
         previousPageButton.setPosition(guiLeft + OPTION_X, guiTop + PAGE_Y);
         nextPageButton.setPosition(guiLeft + RIGHT_BUTTON_X, guiTop + PAGE_Y);
+        modeButton.setPosition(guiLeft + MODE_X, guiTop + MODE_Y);
 
         buttonList.add(previousPageButton);
         buttonList.add(nextPageButton);
+        buttonList.add(modeButton);
 
         updatePageButtons();
     }
@@ -232,6 +242,11 @@ public class GuiHandbag extends GuiContainer {
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
+        if (button.id == MODE_BUTTON) {
+            HandbagNetwork.INSTANCE.sendToServer(new PacketCycleHandbagMode(container.getHand()));
+            return;
+        }
+
         if (button.id == PREVIOUS_PAGE_BUTTON) {
             optionPage = Math.max(0, optionPage - 1);
             updatePageButtons();
@@ -448,6 +463,17 @@ public class GuiHandbag extends GuiContainer {
     }
 
     private void drawHoveredTooltip(int mouseX, int mouseY) {
+        if (modeButton.isMouseOver()) {
+            List<String> lines = Arrays.asList(
+                modeButton.getMode().getTranslatedName(),
+                "",
+                modeButton.getMode().getTranslatedDescription()
+            );
+
+            drawHoveringText(lines, mouseX, mouseY);
+            return;
+        }
+
         if (drawFakeSlotTooltip(mouseX, mouseY)) return;
 
         drawInventorySlotTooltip(mouseX, mouseY);
