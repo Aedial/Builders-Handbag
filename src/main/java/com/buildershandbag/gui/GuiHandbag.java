@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import javax.annotation.Nullable;
 
@@ -551,6 +552,11 @@ public class GuiHandbag extends GuiContainer {
         if (!available) {
             lines.add(I18n.format("gui.buildershandbag.configuration.unavailable",
                 configuration.getIntegration().getTranslatedName()));
+            if (configuration.getIntegration() == HandbagIntegration.FUTUREMC
+                    && configuration.getIntegration().isEnabled()) {
+                String status = configuration.getRecipeStatus().name().toLowerCase(Locale.ROOT);
+                lines.add(I18n.format("gui.buildershandbag.configuration.recipe_" + status));
+            }
         }
 
         if (material.isEmpty()) {
@@ -563,7 +569,9 @@ public class GuiHandbag extends GuiContainer {
             configuration.getMaterialAmount(),
             material.isEmpty() ? configuration.getMaterialData().getString("id") : material.getDisplayName()));
 
-        if (available && configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT) {
+        // TODO: move hasFractionalCost() into the integration itself
+        if (available && (configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT
+                || configuration.getIntegration() == HandbagIntegration.FUTUREMC)) {
             lines.add(I18n.format("gui.buildershandbag.configuration.cost", configuration.getMaterialCost()));
             lines.add(I18n.format("gui.buildershandbag.configuration.outputs", configuration.getOutputCount()));
         }
@@ -578,8 +586,7 @@ public class GuiHandbag extends GuiContainer {
             lines.add(I18n.format("gui.buildershandbag.configuration.remove"));
         }
 
-        if (configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT
-                && configuration.getMaterialAmount().getRemainder() > 0) {
+        if (configuration.getMaterialAmount().getRemainder() > 0) {
             lines.add(I18n.format("gui.buildershandbag.configuration.remove_remainder",
                 configuration.getMaterialAmount().getRemainderText()));
         }
@@ -592,7 +599,8 @@ public class GuiHandbag extends GuiContainer {
         if (player == null) return;
 
         List<String> lines = getItemTooltip(option.getResult());
-        if (option.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT) {
+        if (option.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT
+                || option.getIntegration() == HandbagIntegration.FUTUREMC) {
             HandbagConfiguration configuration = option.createConfiguration(container.getConfigurationMaterial());
             lines.add(I18n.format("gui.buildershandbag.configuration.cost", configuration.getMaterialCost()));
         }

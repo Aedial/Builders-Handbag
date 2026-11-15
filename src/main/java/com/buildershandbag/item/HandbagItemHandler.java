@@ -61,6 +61,7 @@ public final class HandbagItemHandler implements IItemHandler {
         if (slot < 0 || slot >= getSlots()) return ItemStack.EMPTY;
         if (slot < input.getSlots()) return ItemStack.EMPTY;
 
+        matches.validateRecipes();
         int index = slot - input.getSlots();
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, index);
         if (configuration == null || !configuration.isAvailable()) return ItemStack.EMPTY;
@@ -85,6 +86,7 @@ public final class HandbagItemHandler implements IItemHandler {
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
         if (slot < input.getSlots() || slot >= getSlots() || amount <= 0) return ItemStack.EMPTY;
 
+        matches.validateRecipes();
         int index = slot - input.getSlots();
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, index);
         if (configuration == null || !configuration.isAvailable()) return ItemStack.EMPTY;

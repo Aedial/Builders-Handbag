@@ -36,11 +36,19 @@ public enum HandbagIntegration {
             // This integration only matches the frame part, ignoring the original block
             return HandbagServerConfig.isFrameCleanupEnabled() ? MaterialAmount.ZERO : null;
         }
+    },
+    FUTUREMC("futuremc") {
+        @Override
+        public MaterialAmount getMaterialCost(ItemStack material, ItemStack result) {
+            int outputCount = FutureMcRecipeCache.getOutputCount(material, result);
+            return outputCount > 0 ? new MaterialAmount(1, outputCount) : MaterialAmount.BLOCK;
+        }
     };
 
     public static final String CHISEL_MODID = "chisel";
     public static final String ARCHITECTURECRAFT_MODID = "architecturecraft";
     public static final String BLOCKCRAFTERY_MODID = "blockcraftery";
+    public static final String FUTUREMC_MODID = "futuremc";
 
     private static int clientEnabledIntegrations;
 
@@ -75,6 +83,15 @@ public enum HandbagIntegration {
     @Optional.Method(modid = ARCHITECTURECRAFT_MODID)
     private static MaterialAmount getArchitectureCraftCost(ItemStack material, ItemStack result) {
         return ArchitectureCraftIntegration.getMaterialCost(material, result);
+    }
+
+    public boolean isFeatureEnabled() {
+        return this != FUTUREMC || isModLoaded() && isFutureMcEnabled();
+    }
+
+    @Optional.Method(modid = FUTUREMC_MODID)
+    private static boolean isFutureMcEnabled() {
+        return FutureMcIntegration.isEnabled();
     }
 
     public boolean isModLoaded() {

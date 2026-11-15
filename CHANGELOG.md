@@ -8,13 +8,16 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
-## [1.2.0] - 2026-10-30
+## [1.2.0] - 2026-12-??
 ### Added
 - Show an error log on opening the GUI when no configurations are available.
 - Allow the Handbag to refill from sub-inventories, like a bag or /dank/null, with Baubles support.
-- Allow the Handbag to be used as a supplier for Building Gadgets or Better Builders Wands.
+- Allow the Handbag to be used as a supplier for Building Gadgets or Better Builders Wands. These specific integrations rely on mixins and can be disable in config.
 - Add in-world configuration picking on keybind (default: middle-click).
 - Add material re-absorption from dropped items. The handbag will match picked items + do a periodic inventory scan every 30s to reabsorb configured materials into its storage.
+- Add "Random" mode, which chooses a random configuration from the handbag upon placement. The "Normal" mode will continue to use the currently selected configuration.
+- Add the FutureMC integration, which allows the handbag to store and place blocks corresponding to the FutureMC stonecutter.
+- Add a config to automatically migrate FutureMC recipes, when their ratio are changed. If enabled, the remainder will be rounded down to the nearest multiple of the new ratio. If not, the configuration will need to be manually removed and re-added to the handbag.
 
 ### Fixed
 - Allow removed integrations to still persist their configurations, so that material is not lost if the user temporarily removes a mod or wants to recover the blocks. The material will not be selectable and will render as "invalid" in the GUI, but will be restored once the integration is added back.

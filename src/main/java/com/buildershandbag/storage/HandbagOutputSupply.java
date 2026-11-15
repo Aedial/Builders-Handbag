@@ -18,7 +18,14 @@ public final class HandbagOutputSupply {
     }
 
     public static List<ItemStack> getHandbags(EntityPlayer player) {
-        return CarriedHandbags.get(player);
+        List<ItemStack> handbags = CarriedHandbags.get(player);
+        if (!player.world.isRemote) {
+            for (ItemStack handbag : handbags) {
+                if (HandbagStorage.validateRecipes(handbag)) player.inventory.markDirty();
+            }
+        }
+
+        return handbags;
     }
 
     public static boolean isFirstHandbag(EntityPlayer player, ItemStack handbag) {
@@ -120,6 +127,7 @@ public final class HandbagOutputSupply {
             int amount, boolean simulate) {
         if (amount <= 0) return 0;
 
+        HandbagStorage.validateRecipes(handbag);
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, index);
         if (configuration == null || !configuration.isAvailable()) return 0;
 

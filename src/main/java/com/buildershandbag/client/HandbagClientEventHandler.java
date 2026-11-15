@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 import com.buildershandbag.Tags;
@@ -25,9 +26,11 @@ import com.buildershandbag.client.overlay.OverlayMessageRenderer;
 import com.buildershandbag.client.render.BlockcrafteryPreviewModel;
 import com.buildershandbag.config.HandbagClientConfig;
 import com.buildershandbag.integration.HandbagIntegration;
+import com.buildershandbag.integration.FutureMcRecipeCache;
 import com.buildershandbag.item.ItemRegistry;
 import com.buildershandbag.network.HandbagNetwork;
 import com.buildershandbag.network.PacketCycleHandbagConfiguration;
+import com.buildershandbag.network.PacketRequestHandbagRecipes;
 import com.buildershandbag.storage.HandbagConfiguration;
 import com.buildershandbag.storage.HandbagStorage;
 
@@ -67,8 +70,17 @@ public final class HandbagClientEventHandler {
     public static void onClientDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         Minecraft.getMinecraft().addScheduledTask(() -> {
             HandbagIntegration.setClientEnabledIntegrations(0);
+            FutureMcRecipeCache.clearClient();
             resetContentInterpolation();
         });
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || Minecraft.getMinecraft().player == null
+                || !FutureMcRecipeCache.hasRequests()) return;
+
+        HandbagNetwork.INSTANCE.sendToServer(new PacketRequestHandbagRecipes(FutureMcRecipeCache.takeRequests()));
     }
 
     @SubscribeEvent

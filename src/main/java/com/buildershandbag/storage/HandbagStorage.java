@@ -14,6 +14,8 @@ import net.minecraftforge.common.util.Constants;
 
 import com.buildershandbag.container.HandbagLayout;
 import com.buildershandbag.integration.HandbagIntegration;
+import com.buildershandbag.integration.FutureMcRecipeCache;
+import com.buildershandbag.config.HandbagServerConfig;
 import com.buildershandbag.item.HandbagMode;
 
 
@@ -35,6 +37,7 @@ public final class HandbagStorage {
     private static final String NBT_MATERIAL_COUNT = "MaterialCount";
     private static final String NBT_MATERIAL_REMAINDER = "MaterialRemainder";
     private static final String NBT_MATERIAL_DENOMINATOR = "MaterialDenominator";
+    private static final String NBT_OUTPUT_COUNT = "OutputCount";
 
     private HandbagStorage() {
     }
@@ -281,6 +284,40 @@ public final class HandbagStorage {
         HandbagMatchCache.invalidate(handbag);
     }
 
+    public static boolean validateRecipes(ItemStack handbag) {
+        HandbagMatchCache cache = HandbagMatchCache.get(handbag);
+        return cache != null && cache.validateRecipes();
+    }
+
+    public static boolean refreshRecipes(ItemStack handbag) {
+        if (!HandbagIntegration.FUTUREMC.isEnabled()) return false;
+
+        List<HandbagConfiguration> configurations = new ArrayList<>(getConfigurations(handbag));
+        boolean changed = false;
+        for (int index = 0; index < configurations.size(); index++) {
+            HandbagConfiguration configuration = configurations.get(index);
+            if (configuration.getIntegration() != HandbagIntegration.FUTUREMC) continue;
+
+            ItemStack material = configuration.getMaterial();
+            ItemStack result = configuration.getResult();
+            if (material.isEmpty() || result.isEmpty()) continue;
+
+            int outputCount = FutureMcRecipeCache.getOutputCount(material, result);
+            if (outputCount == -1 || outputCount == configuration.getRecipeOutputCount()
+                    || !HandbagServerConfig.integrations.autoMigrateChangedRatios) continue;
+
+            configurations.set(index, configuration.withRecipeOutputCount(outputCount));
+            changed = true;
+        }
+
+        if (changed) {
+            writeConfigurations(handbag, configurations);
+            HandbagMatchCache.invalidate(handbag);
+        }
+
+        return changed;
+    }
+
     @Nullable
     private static HandbagConfiguration readConfiguration(NBTTagCompound serialized) {
         HandbagIntegration integration = HandbagIntegration.fromModId(serialized.getString(NBT_INTEGRATION));
@@ -294,7 +331,8 @@ public final class HandbagStorage {
             serialized.getCompoundTag(NBT_MATERIAL),
             serialized.getCompoundTag(NBT_RESULT),
             integration,
-            new MaterialAmount((long) count * denominator + remainder, denominator));
+            new MaterialAmount((long) count * denominator + remainder, denominator),
+            Math.max(1, serialized.getInteger(NBT_OUTPUT_COUNT)));
     }
 
     private static void replaceConfiguration(ItemStack handbag, int index, HandbagConfiguration replacement) {
@@ -315,6 +353,9 @@ public final class HandbagStorage {
             tag.setTag(NBT_MATERIAL, configuration.getMaterialData());
             tag.setTag(NBT_RESULT, configuration.getResultData());
             tag.setString(NBT_INTEGRATION, configuration.getIntegration().getModID());
+            if (configuration.getIntegration() == HandbagIntegration.FUTUREMC) {
+                tag.setInteger(NBT_OUTPUT_COUNT, configuration.getRecipeOutputCount());
+            }
             MaterialAmount amount = configuration.getMaterialAmount();
             tag.setInteger(NBT_MATERIAL_COUNT, Math.min(MATERIAL_CAPACITY, amount.getWholeCount()));
             if (amount.getDenominator() > 1) {

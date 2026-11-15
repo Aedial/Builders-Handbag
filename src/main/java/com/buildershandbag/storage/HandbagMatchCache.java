@@ -10,10 +10,12 @@ import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.items.IItemHandler;
 
 import com.buildershandbag.config.HandbagServerConfig;
 import com.buildershandbag.integration.HandbagIntegration;
+import com.buildershandbag.integration.FutureMcRecipeCache;
 import com.buildershandbag.item.HandbagItemHandler;
 
 
@@ -28,6 +30,10 @@ public final class HandbagMatchCache {
     private final List<MaterialAmount> returnedMaterials = new ArrayList<>();
     private int enabledMask = -1;
     private boolean cleanupFrames;
+    private int recipeVersion = -1;
+    private int validatedVersion = -1;
+    private int validatedMask = -1;
+    private boolean migrateRatios;
 
     public HandbagMatchCache(ItemStack handbag) {
         this.handbag = handbag;
@@ -41,7 +47,10 @@ public final class HandbagMatchCache {
 
     public static void invalidate(ItemStack handbag) {
         HandbagMatchCache cache = get(handbag);
-        if (cache != null) cache.enabledMask = -1;
+        if (cache != null) {
+            cache.enabledMask = -1;
+            cache.validatedVersion = -1;
+        }
     }
 
     public List<Integer> getMaterials(HandbagStackKey key) {
@@ -67,10 +76,27 @@ public final class HandbagMatchCache {
         return returnedMaterials.get(index);
     }
 
+    public boolean validateRecipes() {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) return false;
+
+        int mask = HandbagIntegration.getEnabledMask();
+        boolean migrate = HandbagServerConfig.integrations.autoMigrateChangedRatios;
+        if (validatedVersion == FutureMcRecipeCache.getVersion()
+                && validatedMask == mask && migrateRatios == migrate) return false;
+
+        boolean changed = HandbagStorage.refreshRecipes(handbag);
+        validatedVersion = FutureMcRecipeCache.getVersion();
+        validatedMask = mask;
+        migrateRatios = migrate;
+        return changed;
+    }
+
     private void refresh() {
+        validateRecipes();
         int mask = HandbagIntegration.getEnabledMask();
         boolean cleanup = HandbagServerConfig.isFrameCleanupEnabled();
-        if (enabledMask == mask && cleanupFrames == cleanup) return;
+        if (enabledMask == mask && cleanupFrames == cleanup
+                && recipeVersion == FutureMcRecipeCache.getVersion()) return;
 
         materials.clear();
         results.clear();
@@ -94,6 +120,7 @@ public final class HandbagMatchCache {
 
         enabledMask = mask;
         cleanupFrames = cleanup;
+        recipeVersion = FutureMcRecipeCache.getVersion();
     }
 
     private static void add(Map<HandbagStackKey, List<Integer>> matches, HandbagStackKey key, int index) {

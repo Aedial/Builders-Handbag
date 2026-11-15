@@ -47,8 +47,9 @@ public class PacketHandbagOptionsSync implements IMessage {
         for (int index = 0; index < count; index++) {
             HandbagIntegration integration = HandbagIntegration.fromOrdinal(buffer.readUnsignedByte());
             ItemStack result = ByteBufUtils.readItemStack(buffer);
+            int outputCount = buffer.readInt();
             if (integration != null && !result.isEmpty()) {
-                options.add(new HandbagConfigurationOption(result, integration));
+                options.add(new HandbagConfigurationOption(result, integration, outputCount));
             }
         }
     }
@@ -60,6 +61,7 @@ public class PacketHandbagOptionsSync implements IMessage {
         for (HandbagConfigurationOption option : options) {
             buffer.writeByte(option.getIntegration().ordinal());
             ByteBufUtils.writeItemStack(buffer, option.getResult());
+            buffer.writeInt(option.getOutputCount());
         }
     }
 

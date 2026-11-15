@@ -38,6 +38,12 @@ public final class HandbagConfigurationProvider {
             addBlockcrafteryOptions(options);
         }
 
+        if (HandbagServerConfig.integrations.isIntegrationEnabled(HandbagIntegration.FUTUREMC)) {
+            for (HandbagConfigurationOption option : FutureMcRecipeCache.getOptions(material)) {
+                addOption(options, option);
+            }
+        }
+
         return options;
     }
 

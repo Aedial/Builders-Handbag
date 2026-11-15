@@ -45,6 +45,12 @@ public final class MaterialAmount {
         return Math.max(0, capacity - getWholeCount());
     }
 
+    public MaterialAmount roundDown(int newDenominator) {
+        long whole = numerator / denominator;
+        long remainder = (long) getRemainder() * newDenominator / denominator;
+        return new MaterialAmount(whole * newDenominator + remainder, newDenominator);
+    }
+
     public MaterialAmount add(long count) {
         return new MaterialAmount(numerator + count * denominator, denominator);
     }

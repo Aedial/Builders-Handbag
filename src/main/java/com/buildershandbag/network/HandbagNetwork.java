@@ -19,6 +19,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import com.buildershandbag.Tags;
 import com.buildershandbag.config.HandbagServerConfig;
 import com.buildershandbag.integration.HandbagIntegration;
+import com.buildershandbag.integration.FutureMcRecipeCache;
 
 
 /**
@@ -76,6 +77,13 @@ public final class HandbagNetwork {
         // Client -> server: cycles the placement mode from the handbag GUI
         INSTANCE.registerMessage(
             PacketCycleHandbagMode.Handler.class, PacketCycleHandbagMode.class, packetId++, Side.SERVER);
+
+        // Server -> client: supplies resolved stonecutter recipes and their output counts
+        INSTANCE.registerMessage(
+            PacketHandbagRecipesSync.Handler.class, PacketHandbagRecipesSync.class, packetId++, Side.CLIENT);
+        // Client -> server: batches missing recipe details for visible configurations
+        INSTANCE.registerMessage(
+            PacketRequestHandbagRecipes.Handler.class, PacketRequestHandbagRecipes.class, packetId++, Side.SERVER);
     }
 
     @SubscribeEvent
@@ -85,6 +93,8 @@ public final class HandbagNetwork {
         INSTANCE.sendTo(new PacketHandbagIntegrationsSync(HandbagIntegration.getEnabledMask(),
             HandbagServerConfig.isFrameCleanupEnabled(), HandbagServerConfig.isPickupAbsorptionEnabled(),
             HandbagServerConfig.isInventoryCleanupEnabled()), (EntityPlayerMP) event.player);
+        INSTANCE.sendTo(new PacketHandbagRecipesSync(FutureMcRecipeCache.getSnapshot()),
+            (EntityPlayerMP) event.player);
     }
 
     /**
@@ -117,6 +127,10 @@ public final class HandbagNetwork {
             lastInventoryCleanup = inventoryCleanup;
             INSTANCE.sendToAll(new PacketHandbagIntegrationsSync(
                 enabledIntegrations, cleanupFrames, pickupAbsorption, inventoryCleanup));
+        }
+
+        if (FutureMcRecipeCache.hasUpdates()) {
+            INSTANCE.sendToAll(new PacketHandbagRecipesSync(FutureMcRecipeCache.takeUpdates()));
         }
 
         if (PENDING_TILE_SYNCS.isEmpty()) return;

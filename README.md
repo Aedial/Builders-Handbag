@@ -13,6 +13,7 @@ The handbag will automatically re-absorb matching configured materials and their
 - **Chisel** for carved block variants.
 - **ArchitectureCraft** for shape variants.
 - **Blockcraftery** for editable blocks.
+- **Future-MC** for stonecutter recipes (including custom ones).
 - **AE2** for wireless material refilling.
 
 Each can be enabled or disabled in the server config.
@@ -23,6 +24,7 @@ Each can be enabled or disabled in the server config.
 - **Pick-up Absorption**: Automatically absorb configured materials and exact configured blocks when the player picks them up.
 - **Inventory Cleanup**: Periodically scan the player's inventory to reabsorb configured materials into the handbag's storage.
 - **Mixin Options**: Enable or disable mixins for Building Gadgets and Better Builders Wands integrations. Requires a restart to take effect.
+- **Automatic Ratio Migration**: Enable automatic migration of changed Future-MC recipe ratios. If it is not enabled, changed configuration must be manually removed and reconfigured. The migration preserves whole materials and rounds the fractional remainder down to the new denominator.
 
 ## Mixin use
 The mod uses mixins to allow Better Builders Wands and Building Gadgets to source materials from the handbag's internal inventory and apply them correctly during block placement. Neither of these mods support the necessary NBT matching, which is necessary for ArchitectureCraft/Blockcraftery integrations.

@@ -91,6 +91,10 @@ public class ItemHandbag extends ItemBlock {
         IItemHandler handler = stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
         if (handler instanceof HandbagItemHandler) {
             ((HandbagItemHandler) handler).setPlayer(entity instanceof EntityPlayer ? (EntityPlayer) entity : null);
+            if (!world.isRemote && entity instanceof EntityPlayer &&
+                ((HandbagItemHandler) handler).getMatches().validateRecipes()) {
+                    ((EntityPlayer) entity).inventory.markDirty();
+                }
         }
         if (entity instanceof EntityPlayer) CarriedHandbags.register((EntityPlayer) entity, stack, slot);
     }
@@ -119,6 +123,7 @@ public class ItemHandbag extends ItemBlock {
         if (world.isRemote) return EnumActionResult.SUCCESS;
 
         ItemStack handbag = player.getHeldItem(hand);
+        if (HandbagStorage.validateRecipes(handbag)) player.inventory.markDirty();
         boolean selectionChanged = false;
         if (HandbagStorage.getMode(handbag) == HandbagMode.RANDOM) {
             int previous = HandbagStorage.getSelected(handbag);

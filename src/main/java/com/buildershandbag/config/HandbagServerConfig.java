@@ -80,6 +80,14 @@ public final class HandbagServerConfig {
         @Config.LangKey(INTEGRATIONS_PREFIX + ".blockcraftery")
         public boolean enableBlockcraftery = true;
 
+        @Config.Comment("Allow stonecutter configurations supplied by Future-MC when it is installed")
+        @Config.LangKey(INTEGRATIONS_PREFIX + ".futuremc")
+        public boolean enableFutureMc = true;
+
+        @Config.Comment("Migrate changed Future-MC ratios and round fractional material down to the new denominator")
+        @Config.LangKey(INTEGRATIONS_PREFIX + ".migrate_changed_ratios")
+        public boolean autoMigrateChangedRatios = false;
+
         @Config.Comment("Refill an empty selected configuration through its AE2 link, if available")
         @Config.LangKey(INTEGRATIONS_PREFIX + ".ae2_refill")
         public boolean enableAe2Refill = true;
@@ -95,6 +103,8 @@ public final class HandbagServerConfig {
                     return enableArchitectureCraft;
                 case BLOCKCRAFTERY:
                     return enableBlockcraftery;
+                case FUTUREMC:
+                    return enableFutureMc && integration.isFeatureEnabled();
                 default:
                     return false;
             }

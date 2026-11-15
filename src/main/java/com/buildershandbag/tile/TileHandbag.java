@@ -48,9 +48,22 @@ public class TileHandbag extends TileEntity {
             refreshSelectedConfiguration();
         }
 
+        if (world != null && !world.isRemote && HandbagStorage.validateRecipes(handbag)) {
+            refreshSelectedConfiguration();
+        }
+
         markDirty();
         if (world != null && !world.isRemote) {
             world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+        }
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (world != null && !world.isRemote && HandbagStorage.validateRecipes(handbag)) {
+            refreshSelectedConfiguration();
+            markDirty();
         }
     }
 

@@ -12,8 +12,14 @@ public final class HandbagConfigurationOption {
 
     private final ItemStack result;
     private final HandbagIntegration integration;
+    private final int outputCount;
 
     public HandbagConfigurationOption(ItemStack result, HandbagIntegration integration) {
+        this(result, integration, 1);
+    }
+
+    public HandbagConfigurationOption(ItemStack result, HandbagIntegration integration, int outputCount) {
+        this.outputCount = Math.max(1, outputCount);
         this.result = result == null ? ItemStack.EMPTY : result.copy();
         if (!this.result.isEmpty()) this.result.setCount(1);
         this.integration = integration;
@@ -27,8 +33,12 @@ public final class HandbagConfigurationOption {
         return integration;
     }
 
+    public int getOutputCount() {
+        return outputCount;
+    }
+
     public HandbagConfiguration createConfiguration(ItemStack material) {
-        return new HandbagConfiguration(material, result, integration, 0);
+        return new HandbagConfiguration(material, result, integration, 0, outputCount);
     }
 
     public boolean matches(HandbagConfigurationOption other) {

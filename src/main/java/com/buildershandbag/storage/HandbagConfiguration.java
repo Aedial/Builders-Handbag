@@ -4,6 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import com.buildershandbag.integration.HandbagIntegration;
+import com.buildershandbag.integration.FutureMcRecipeCache;
 
 
 /**
@@ -18,10 +19,17 @@ public final class HandbagConfiguration {
     private final NBTTagCompound resultData;
     private final HandbagIntegration integration;
     private final MaterialAmount materialAmount;
+    private final int outputCount;
 
     public HandbagConfiguration(ItemStack material, ItemStack result, HandbagIntegration integration, int materialCount) {
+        this(material, result, integration, materialCount, 1);
+    }
+
+    public HandbagConfiguration(ItemStack material, ItemStack result, HandbagIntegration integration,
+            int materialCount, int outputCount) {
         this(copySingle(material).writeToNBT(new NBTTagCompound()),
-            copySingle(result).writeToNBT(new NBTTagCompound()), integration, materialCount);
+            copySingle(result).writeToNBT(new NBTTagCompound()), integration,
+            new MaterialAmount(Math.max(0, materialCount), 1), outputCount);
     }
 
     public HandbagConfiguration(NBTTagCompound materialData, NBTTagCompound resultData,
@@ -31,6 +39,12 @@ public final class HandbagConfiguration {
 
     public HandbagConfiguration(NBTTagCompound materialData, NBTTagCompound resultData,
             HandbagIntegration integration, MaterialAmount materialAmount) {
+        this(materialData, resultData, integration, materialAmount, 1);
+    }
+
+    public HandbagConfiguration(NBTTagCompound materialData, NBTTagCompound resultData,
+            HandbagIntegration integration, MaterialAmount materialAmount, int outputCount) {
+        this.outputCount = Math.max(1, outputCount);
         this.materialData = materialData.copy();
         this.resultData = resultData.copy();
         this.material = copySingle(new ItemStack(materialData.copy()));
@@ -56,7 +70,8 @@ public final class HandbagConfiguration {
     }
 
     public boolean isAvailable() {
-        return !material.isEmpty() && !result.isEmpty() && integration.isEnabled();
+        return !material.isEmpty() && !result.isEmpty() && integration.isEnabled()
+            && getRecipeStatus() == RecipeStatus.AVAILABLE;
     }
 
     public HandbagIntegration getIntegration() {
@@ -72,7 +87,27 @@ public final class HandbagConfiguration {
     }
 
     public MaterialAmount getMaterialCost() {
-        return integration.getMaterialCost(getMaterial(), getResult());
+        return integration == HandbagIntegration.FUTUREMC
+            ? new MaterialAmount(1, outputCount) : integration.getMaterialCost(getMaterial(), getResult());
+    }
+
+    public int getRecipeOutputCount() {
+        return outputCount;
+    }
+
+    public RecipeStatus getRecipeStatus() {
+        if (integration != HandbagIntegration.FUTUREMC) return RecipeStatus.AVAILABLE;
+
+        int current = FutureMcRecipeCache.getOutputCount(material, result);
+        if (current == -1) return RecipeStatus.PENDING;
+        if (current == 0) return RecipeStatus.MISSING;
+
+        return current == outputCount ? RecipeStatus.AVAILABLE : RecipeStatus.CHANGED;
+    }
+
+    public HandbagConfiguration withRecipeOutputCount(int count) {
+        MaterialAmount balance = materialAmount.roundDown(count);
+        return new HandbagConfiguration(materialData, resultData, integration, balance, count);
     }
 
     public int getOutputCount() {
@@ -80,11 +115,18 @@ public final class HandbagConfiguration {
     }
 
     public HandbagConfiguration withMaterialCount(int count) {
-        return new HandbagConfiguration(materialData, resultData, integration, count);
+        return withMaterialAmount(new MaterialAmount(Math.max(0, count), 1));
     }
 
     public HandbagConfiguration withMaterialAmount(MaterialAmount amount) {
-        return new HandbagConfiguration(materialData, resultData, integration, amount);
+        return new HandbagConfiguration(materialData, resultData, integration, amount, outputCount);
+    }
+
+    public enum RecipeStatus {
+        AVAILABLE,
+        PENDING,
+        MISSING,
+        CHANGED
     }
 
     private static ItemStack copySingle(ItemStack stack) {

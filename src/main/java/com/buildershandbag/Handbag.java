@@ -7,12 +7,15 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import com.buildershandbag.container.GuiHandler;
 import com.buildershandbag.block.BlockRegistry;
 import com.buildershandbag.item.ItemRegistry;
 import com.buildershandbag.network.HandbagNetwork;
+import com.buildershandbag.integration.FutureMcRecipeCache;
 
 
 @Mod(
@@ -41,6 +44,16 @@ public class Handbag {
         ItemRegistry.init();
         HandbagNetwork.init();
         proxy.preInit(event);
+    }
+
+    @Mod.EventHandler
+    public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
+        FutureMcRecipeCache.clearServer();
+    }
+
+    @Mod.EventHandler
+    public void onServerStopped(FMLServerStoppedEvent event) {
+        FutureMcRecipeCache.clearServer();
     }
 
     @Mod.EventHandler

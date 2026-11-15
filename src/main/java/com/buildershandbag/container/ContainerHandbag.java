@@ -20,6 +20,8 @@ import net.minecraft.util.EnumHand;
 import com.buildershandbag.integration.HandbagConfigurationOption;
 import com.buildershandbag.integration.HandbagConfigurationProvider;
 import com.buildershandbag.item.ItemRegistry;
+import com.buildershandbag.item.ItemHandbag;
+import com.buildershandbag.storage.HandbagStorage;
 import com.buildershandbag.network.HandbagNetwork;
 import com.buildershandbag.network.PacketHandbagOptionsSync;
 
@@ -59,6 +61,8 @@ public class ContainerHandbag extends Container {
         super.addListener(listener);
         if (player.world.isRemote) return;
 
+        HandbagStorage.validateRecipes(player.getHeldItem(hand));
+        if (player instanceof EntityPlayerMP) ItemHandbag.syncToClient((EntityPlayerMP) player, hand);
         lastOptionMaterial = getConfigurationMaterial().copy();
         syncOptions();
     }

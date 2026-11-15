@@ -47,9 +47,20 @@ public final class HandbagBlockPicker {
             if (chiselConfig != null) return chiselConfig;
         }
 
+        if (HandbagIntegration.FUTUREMC.isEnabled()) {
+            HandbagConfiguration futureMcConfig = pickFutureMc(result);
+            if (futureMcConfig != null) return futureMcConfig;
+        }
+
         // + any other future integrations
 
         return null;
+    }
+
+    @Nullable
+    @Optional.Method(modid = HandbagIntegration.FUTUREMC_MODID)
+    private static HandbagConfiguration pickFutureMc(ItemStack result) {
+        return FutureMcIntegration.pickConfiguration(result);
     }
 
     @Nullable
