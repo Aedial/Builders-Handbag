@@ -23,6 +23,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -548,6 +549,7 @@ public class GuiHandbag extends GuiContainer {
         } else {
             lines.addAll(getItemTooltip(available ? configuration.getResult() : material));
         }
+        formatIntegrationTooltip(lines, configuration.getIntegration());
 
         if (!available) {
             lines.add(I18n.format("gui.buildershandbag.configuration.unavailable",
@@ -599,6 +601,7 @@ public class GuiHandbag extends GuiContainer {
         if (player == null) return;
 
         List<String> lines = getItemTooltip(option.getResult());
+        formatIntegrationTooltip(lines, option.getIntegration());
         if (option.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT
                 || option.getIntegration() == HandbagIntegration.FUTUREMC) {
             HandbagConfiguration configuration = option.createConfiguration(container.getConfigurationMaterial());
@@ -629,6 +632,13 @@ public class GuiHandbag extends GuiContainer {
         }
 
         drawHoveringText(lines, mouseX, mouseY);
+    }
+
+    private void formatIntegrationTooltip(List<String> lines, HandbagIntegration integration) {
+        if (!isShiftKeyDown() && lines.size() > 1) lines.subList(1, lines.size()).clear();
+
+        TextFormatting color = integration.isEnabled() ? TextFormatting.GREEN : TextFormatting.RED;
+        lines.add(1, color + integration.getTranslatedName());
     }
 
     private List<String> getItemTooltip(ItemStack stack) {
