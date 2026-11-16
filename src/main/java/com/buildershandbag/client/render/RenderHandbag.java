@@ -163,11 +163,11 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
             GlStateManager.translate(0.5D, 0.5D, 0.5D);
 
             // Wrap each axis independently so the slower Z spin stays continuous.
-            float speed = (float) HandbagClientConfig.rendering.coreRotationSpeed;
-            if (speed > 0.0F) {
-                float ticks = getAnimationTicks(tile, partialTicks);
-                GlStateManager.rotate(wrapDegrees( ticks * 2.0F * speed), 0.0F, 1.0F, 0.0F);
-                GlStateManager.rotate(wrapDegrees(ticks * 0.74F * speed), 0.0F, 0.0F, 1.0F);
+            double speed = HandbagClientConfig.rendering.coreRotationSpeed;
+            if (speed > 0.0D) {
+                double ticks = getAnimationTicks(partialTicks);
+                GlStateManager.rotate(wrapDegrees(ticks * 2.0D * speed), 0.0F, 1.0F, 0.0F);
+                GlStateManager.rotate(wrapDegrees(ticks * 0.74D * speed), 0.0F, 0.0F, 1.0F);
             }
 
             float scale = (float) (HandbagClientConfig.rendering.coreScale * DEFAULT_CORE_SCALE);
@@ -188,17 +188,13 @@ public class RenderHandbag extends TileEntitySpecialRenderer<TileHandbag> {
         return tile.getSelectedConfiguration();
     }
 
-    private float getAnimationTicks(TileHandbag tile, float partialTicks) {
-        if (tile.hasWorld()) return tile.getWorld().getTotalWorldTime() + partialTicks;
-
-        Minecraft minecraft = Minecraft.getMinecraft();
-        if (minecraft.world != null) return minecraft.world.getTotalWorldTime() + minecraft.getRenderPartialTicks();
-
-        return Minecraft.getSystemTime() / 50.0F;
+    private double getAnimationTicks(float partialTicks) {
+        // The client tick counter advances independently of server time updates
+        return (double) Integer.toUnsignedLong(Minecraft.getMinecraft().ingameGUI.getUpdateCounter()) + partialTicks;
     }
 
-    private static float wrapDegrees(float angle) {
-        return angle % 360.0F;
+    private static float wrapDegrees(double angle) {
+        return (float) (angle % 360.0D);
     }
 
     private void renderDefaultCore() {

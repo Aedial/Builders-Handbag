@@ -45,6 +45,7 @@ public final class HandbagOutputSupply {
 
     public static int count(EntityPlayer player, ItemStack requested) {
         if (requested.isEmpty()) return 0;
+        if (HandbagCreative.hasFreeSupply(player) && hasConfiguration(player, requested)) return Integer.MAX_VALUE;
         if (player.world.isRemote) return HandbagSupplyCache.getCount(player, requested);
 
         return countAvailable(player, requested, true);
@@ -108,6 +109,7 @@ public final class HandbagOutputSupply {
 
     public static int extract(EntityPlayer player, ItemStack requested, int amount) {
         if (amount <= 0 || player.world.isRemote) return 0;
+        if (HandbagCreative.hasFreeSupply(player) && hasConfiguration(player, requested)) return amount;
 
         int extracted = 0;
         for (ItemStack handbag : getHandbags(player)) {
@@ -130,6 +132,9 @@ public final class HandbagOutputSupply {
         HandbagStorage.validateRecipes(handbag);
         HandbagConfiguration configuration = HandbagStorage.getConfiguration(handbag, index);
         if (configuration == null || !configuration.isAvailable()) return 0;
+        if (HandbagCreative.hasFreeSupply(player)) {
+            return simulate || !player.world.isRemote ? amount : 0;
+        }
 
         if (simulate) {
             if (player != null && player.world.isRemote) {

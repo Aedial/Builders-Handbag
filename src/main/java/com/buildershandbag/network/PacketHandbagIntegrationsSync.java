@@ -22,16 +22,18 @@ public final class PacketHandbagIntegrationsSync implements IMessage {
     private boolean cleanupFrames;
     private boolean pickupAbsorption;
     private boolean inventoryCleanup;
+    private boolean creativeSupply;
 
     public PacketHandbagIntegrationsSync() {
     }
 
     public PacketHandbagIntegrationsSync(int enabledIntegrations, boolean cleanupFrames,
-            boolean pickupAbsorption, boolean inventoryCleanup) {
+            boolean pickupAbsorption, boolean inventoryCleanup, boolean creativeSupply) {
         this.enabledIntegrations = enabledIntegrations;
         this.cleanupFrames = cleanupFrames;
         this.pickupAbsorption = pickupAbsorption;
         this.inventoryCleanup = inventoryCleanup;
+        this.creativeSupply = creativeSupply;
     }
 
     @Override
@@ -40,6 +42,7 @@ public final class PacketHandbagIntegrationsSync implements IMessage {
         cleanupFrames = buffer.readBoolean();
         pickupAbsorption = buffer.readBoolean();
         inventoryCleanup = buffer.readBoolean();
+        creativeSupply = buffer.readBoolean();
     }
 
     @Override
@@ -48,6 +51,7 @@ public final class PacketHandbagIntegrationsSync implements IMessage {
         buffer.writeBoolean(cleanupFrames);
         buffer.writeBoolean(pickupAbsorption);
         buffer.writeBoolean(inventoryCleanup);
+        buffer.writeBoolean(creativeSupply);
     }
 
     public static final class Handler implements IMessageHandler<PacketHandbagIntegrationsSync, IMessage> {
@@ -58,7 +62,7 @@ public final class PacketHandbagIntegrationsSync implements IMessage {
             Minecraft.getMinecraft().addScheduledTask(() -> {
                 HandbagIntegration.setClientEnabledIntegrations(message.enabledIntegrations);
                 HandbagServerConfig.setClientBehavior(
-                    message.cleanupFrames, message.pickupAbsorption, message.inventoryCleanup);
+                    message.cleanupFrames, message.pickupAbsorption, message.inventoryCleanup, message.creativeSupply);
             });
             return null;
         }

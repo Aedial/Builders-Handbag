@@ -8,8 +8,17 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 
-## [1.2.0] - 2026-12-??
+## [1.3.0] - 2026-12-??
 ### Added
+- Add LittleTiles integration.
+- Add Chisels & Bits integration.
+
+
+## [1.2.0] - 2026-11-22
+### Added
+- Retain ArchitectureCraft-Renovated texture orientation when picking and placing blocks.
+- Add a config option for unlimited configured blocks in creative mode.
+- Show a placement ghost with rotation and connections while holding the Handbag in Normal mode.
 - Show an error log on opening the GUI when no configurations are available.
 - Allow the Handbag to refill from sub-inventories, like a bag or /dank/null, with Baubles support.
 - Allow the Handbag to be used as a supplier for Building Gadgets or Better Builders Wands. These specific integrations rely on mixins and can be disable in config.

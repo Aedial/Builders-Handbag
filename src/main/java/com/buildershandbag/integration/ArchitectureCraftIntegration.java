@@ -9,8 +9,11 @@ import net.minecraft.block.BlockSlab;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 
 import com.elytradev.architecture.common.shape.EnumShape;
 import com.elytradev.architecture.common.tile.TileShape;
@@ -23,6 +26,9 @@ import com.buildershandbag.storage.MaterialAmount;
  * ArchitectureCraft shape integration.
  */
 public final class ArchitectureCraftIntegration {
+
+    private static final String TILE_TAG = "BlockEntityTag";
+    private static final String ORIENT_TAG = "Orient";
 
     private ArchitectureCraftIntegration() {
     }
@@ -70,6 +76,26 @@ public final class ArchitectureCraftIntegration {
         if (!HandbagConfigurationProvider.isConfigurationMaterial(material)) return null;
 
         ItemStack result = shape.kind.newStack(shape, block, material.getMetadata(), 1);
+        NBTTagCompound data = tile.writeToNBT(new NBTTagCompound());
+        if (data.hasKey(ORIENT_TAG, Constants.NBT.TAG_ANY_NUMERIC)) {
+            result.getOrCreateSubCompound(TILE_TAG).setInteger(ORIENT_TAG, data.getInteger(ORIENT_TAG));
+        }
+
         return new HandbagConfiguration(material, result, HandbagIntegration.ARCHITECTURECRAFT, 0);
+    }
+
+    public static boolean applyTextureOrientation(TileEntity tile, ItemStack output) {
+        if (!(tile instanceof TileShape)) return false;
+
+        NBTTagCompound supplied = output.getSubCompound(TILE_TAG);
+        if (supplied == null || !supplied.hasKey(ORIENT_TAG, Constants.NBT.TAG_ANY_NUMERIC)) return false;
+
+        NBTTagCompound data = tile.writeToNBT(new NBTTagCompound());
+        if (!data.hasKey(ORIENT_TAG, Constants.NBT.TAG_ANY_NUMERIC)
+                || data.getInteger(ORIENT_TAG) == supplied.getInteger(ORIENT_TAG)) return false;
+
+        data.setInteger(ORIENT_TAG, supplied.getInteger(ORIENT_TAG));
+        tile.readFromNBT(data);
+        return true;
     }
 }

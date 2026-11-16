@@ -50,6 +50,8 @@ buildershandbag.config.server.integrations.ae2_refill=AE2 Refilling
 buildershandbag.config.server.integrations.ae2_refill.tooltip=Refill an empty selected configuration through its AE2 link, if available
 buildershandbag.config.server.behavior.use_old_open=Use old open controls
 buildershandbag.config.server.behavior.use_old_open.tooltip=Allow to use right-click when not targeting a block to open the handbag GUI, instead of shift + right-click only
+buildershandbag.config.server.behavior.creative_supply=Creative material supply
+buildershandbag.config.server.behavior.creative_supply.tooltip=Provide unlimited configured blocks through Handbag and void matching items,  in creative mode
 buildershandbag.config.server.behavior.pickup_absorption=Pick-up absorption
 buildershandbag.config.server.behavior.pickup_absorption.tooltip=Absorb configured materials and exact configured blocks when the player picks them up
 buildershandbag.config.server.behavior.inventory_cleanup=Periodic inventory cleanup
@@ -73,6 +75,8 @@ tooltip.buildershandbag.frame_cleanup=Matching Blockcraftery frames will be abso
 tooltip.buildershandbag.pickup_enabled=Pick-up §aenabled§7
 tooltip.buildershandbag.pickup_disabled=Pick-up §cdisabled§7
 tooltip.buildershandbag.inventory_cleanup= / Inventory cleanup every §a30s§7
+tooltip.buildershandbag.selected_creative=Selected: %s (%s). Right-click to place, Shift + Scroll to change selected block
+tooltip.buildershandbag.selected_random_creative=Selected: %s (%s). Right-click to place a random configuration
 
 # Messages
 message.buildershandbag.no_configuration=This handbag has no stored configurations
@@ -88,6 +92,9 @@ message.buildershandbag.picked=Configuration selected
 message.buildershandbag.invalid_pick=That block has no supported handbag configuration
 
 # GUI
+gui.buildershandbag.configuration.unlimited=Unlimited
+gui.buildershandbag.configuration.unlimited_short=INF
+gui.buildershandbag.configuration.creative_supply=Unlimited configured blocks in creative mode
 mode.buildershandbag.normal=Mode: §aNormal
 mode.buildershandbag.normal.description=§7Places the selected configuration on §bright-click
 mode.buildershandbag.random=Mode: §aRandom

@@ -39,7 +39,7 @@ public final class HandbagAbsorptionEvents {
         if (entity.getOwner() != null && !entity.getOwner().equals(player.getName())) return;
 
         ItemStack stack = entity.getItem();
-        int accepted = HandbagAbsorption.absorb(CarriedHandbags.get(player), stack, true);
+        int accepted = HandbagAbsorption.absorb(player, CarriedHandbags.get(player), stack, true);
         if (accepted <= 0) return;
 
         stack.shrink(accepted);
@@ -67,7 +67,7 @@ public final class HandbagAbsorptionEvents {
             if (slot >= armorStart && slot < armorEnd) continue;
 
             ItemStack stack = player.inventory.getStackInSlot(slot);
-            int accepted = HandbagAbsorption.absorb(handbags, stack, false);
+            int accepted = HandbagAbsorption.absorb(player, handbags, stack, false);
             if (accepted <= 0) continue;
 
             stack.shrink(accepted);

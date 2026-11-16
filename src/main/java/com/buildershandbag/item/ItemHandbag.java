@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -37,6 +38,7 @@ import com.buildershandbag.config.HandbagServerConfig;
 import com.buildershandbag.config.HandbagClientConfig;
 import com.buildershandbag.container.GuiHandler;
 import com.buildershandbag.integration.Ae2Integration;
+import com.buildershandbag.integration.ArchitectureCraftIntegration;
 import com.buildershandbag.integration.BlockcrafteryIntegration;
 import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.network.HandbagMessages;
@@ -44,6 +46,7 @@ import com.buildershandbag.network.HandbagNetwork;
 import com.buildershandbag.network.PacketHandbagSync;
 import com.buildershandbag.storage.CarriedHandbags;
 import com.buildershandbag.storage.HandbagConfiguration;
+import com.buildershandbag.storage.HandbagCreative;
 import com.buildershandbag.storage.HandbagStorage;
 import com.buildershandbag.storage.HandbagMaterialSupply;
 
@@ -181,7 +184,7 @@ public class ItemHandbag extends ItemBlock {
             return EnumActionResult.FAIL;
         }
 
-        if (!ensureMaterialAvailable(player, handbag, selected)) {
+        if (!HandbagCreative.hasFreeSupply(player) && !ensureMaterialAvailable(player, handbag, selected)) {
             HandbagMessages.error(player, "message.buildershandbag.no_material");
             return EnumActionResult.FAIL;
         }
@@ -193,7 +196,7 @@ public class ItemHandbag extends ItemBlock {
             resultStack, configuration, placementPos);
         if (placement != EnumActionResult.SUCCESS) return placement;
 
-        HandbagStorage.consumeMaterial(handbag, selected);
+        if (!HandbagCreative.hasFreeSupply(player)) HandbagStorage.consumeMaterial(handbag, selected);
         player.inventory.markDirty();
 
         if (player instanceof EntityPlayerMP) syncToClient((EntityPlayerMP) player, hand);
@@ -214,7 +217,7 @@ public class ItemHandbag extends ItemBlock {
             // ArchitectureCraft fills the placed tile from stack NBT after placement,
             // so the client needs a deferred tile sync for it to render correctly
             if (configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT) {
-                syncArchitectureCraftTile(world, placementPos);
+                syncArchitectureCraftTile(world, placementPos, resultStack);
             }
 
             if (configuration.getIntegration() == HandbagIntegration.BLOCKCRAFTERY
@@ -232,9 +235,12 @@ public class ItemHandbag extends ItemBlock {
         }
     }
 
-    private void syncArchitectureCraftTile(World world, BlockPos position) {
+    @Optional.Method(modid = HandbagIntegration.ARCHITECTURECRAFT_MODID)
+    private void syncArchitectureCraftTile(World world, BlockPos position, ItemStack output) {
         TileEntity tile = world.getTileEntity(position);
         if (tile == null) return;
+
+        if (ArchitectureCraftIntegration.applyTextureOrientation(tile, output)) tile.markDirty();
 
         HandbagNetwork.syncPlacedTile(world, position, tile);
     }
@@ -248,7 +254,7 @@ public class ItemHandbag extends ItemBlock {
         return HandbagMaterialSupply.refill(player, handbag, selected);
     }
 
-    private BlockPos getPlacementPosition(World world, BlockPos clickedPos, EnumFacing side) {
+    public static BlockPos getPlacementPosition(World world, BlockPos clickedPos, EnumFacing side) {
         Block block = world.getBlockState(clickedPos).getBlock();
         return block.isReplaceable(world, clickedPos) ? clickedPos : clickedPos.offset(side);
     }
@@ -317,10 +323,16 @@ public class ItemHandbag extends ItemBlock {
         if (selected >= 0) {
             HandbagConfiguration configuration = configurations.get(selected);
             String selectedSuffix = mode == HandbagMode.RANDOM ? "selected_random" : "selected";
+            boolean free = HandbagCreative.hasFreeSupply(Minecraft.getMinecraft().player);
+            if (free) selectedSuffix += "_creative";
+
+            String balance = free
+                ? I18n.format("gui.buildershandbag.configuration.unlimited")
+                : configuration.getMaterialAmount().toString();
             tooltip.add(I18n.format(
                 "tooltip.buildershandbag." + selectedSuffix,
                 configuration.getResult().getDisplayName(),
-                configuration.getMaterialAmount()));
+                balance));
         } else if (configurations.stream().noneMatch(HandbagConfiguration::isAvailable)) {
             tooltip.add(I18n.format("tooltip.buildershandbag.no_available_configurations"));
         } else {

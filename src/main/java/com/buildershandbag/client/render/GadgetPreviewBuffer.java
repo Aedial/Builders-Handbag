@@ -13,6 +13,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.client.model.pipeline.LightUtil;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -49,7 +50,7 @@ public final class GadgetPreviewBuffer {
     }
 
     public static void appendModel(IBakedModel model, IBlockState state, IBlockState material,
-            World world, BlockPos source, BlockPos relative, BufferBuilder buffer) {
+            IBlockAccess world, BlockPos source, BlockPos relative, BufferBuilder buffer) {
         for (EnumFacing face : EnumFacing.values()) {
             appendQuads(model.getQuads(state, face, 0L), face, material, world, source, relative, buffer);
         }
@@ -58,7 +59,7 @@ public final class GadgetPreviewBuffer {
     }
 
     private static void appendQuads(List<BakedQuad> quads, EnumFacing fallback, IBlockState material,
-            World world, BlockPos source, BlockPos relative, BufferBuilder buffer) {
+            IBlockAccess world, BlockPos source, BlockPos relative, BufferBuilder buffer) {
         int light = world.getCombinedLight(source, 0);
         for (BakedQuad quad : quads) {
             int[] vertices = quad.getVertexData();

@@ -6,6 +6,8 @@ The Handbag can act as a supplier for Building Gadgets or Better Builders Wands,
 
 With the handbag in your main hand, middle-click (configurable keybind) a supported block to add its configuration.
 
+The handbag will show a ghost of the block's placement preview, when in hand.
+
 The handbag will automatically re-absorb matching configured materials and their underlying block from dropped items, as well as periodically scan the player's inventory to reabsorb configured materials into its storage (but not their underlying block). The re-absorption process will skip configurations that are full or invalid, but the periodic scan may absorb them later, when space becomes available.
 
 ## Optional integrations
@@ -23,6 +25,7 @@ Each can be enabled or disabled in the server config.
 - **Old Open Behavior**: Restore the old right-click behavior for opening the handbag GUI, instead of requiring shift-click. This behavior can open the GUI at inopportune times, but may be preferred by some players.
 - **Pick-up Absorption**: Automatically absorb configured materials and exact configured blocks when the player picks them up.
 - **Inventory Cleanup**: Periodically scan the player's inventory to reabsorb configured materials into the handbag's storage.
+- **Creative Material Supply**: Provide unlimited configured blocks through Handbag in creative mode. Pickup absorption and periodic inventory cleanup void matching recovery items. Building tools keep their native creative behavior.
 - **Mixin Options**: Enable or disable mixins for Building Gadgets and Better Builders Wands integrations. Requires a restart to take effect.
 - **Automatic Ratio Migration**: Enable automatic migration of changed Future-MC recipe ratios. If it is not enabled, changed configuration must be manually removed and reconfigured. The migration preserves whole materials and rounds the fractional remainder down to the new denominator.
 

@@ -17,7 +17,7 @@ public final class HandbagAbsorption {
     private HandbagAbsorption() {
     }
 
-    public static int absorb(List<ItemStack> handbags, ItemStack stack, boolean includeMaterial) {
+    public static int absorb(EntityPlayer player, List<ItemStack> handbags, ItemStack stack, boolean includeMaterial) {
         if (handbags.isEmpty() || stack.isEmpty() || stack.getItem() instanceof ItemHandbag) return 0;
 
         HandbagStackKey material = includeMaterial ? HandbagStackKey.probeMaterial(stack) : null;
@@ -41,6 +41,8 @@ public final class HandbagAbsorption {
                 if (output == index) resultIndex++;
 
                 MaterialAmount amount = cache.getAmount(index, material, result, includeMaterial);
+                if (amount != null && HandbagCreative.hasFreeSupply(player)) return stack.getCount();
+
                 accepted += HandbagStorage.insertMaterial(
                     handbag, index, stack.getCount() - accepted, amount, false);
             }

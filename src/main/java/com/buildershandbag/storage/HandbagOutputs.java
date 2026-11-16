@@ -122,7 +122,7 @@ public final class HandbagOutputs {
 
         NBTTagCompound supplied = new NBTTagCompound();
         String[] fields = architecture
-            ? new String[] {"Shape", "BaseName", "BaseData", "side", "turn", "offsetX", "Disconnected"}
+            ? new String[] {"Shape", "BaseName", "BaseData", "side", "turn", "offsetX", "Disconnected", "Orient"}
             : new String[] {"state", "stack"};
         for (String field : fields) {
             if (data.hasKey(field)) supplied.setTag(field, data.getTag(field).copy());

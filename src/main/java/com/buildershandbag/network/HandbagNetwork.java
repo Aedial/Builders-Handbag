@@ -35,6 +35,7 @@ public final class HandbagNetwork {
     private static boolean lastCleanupFrames;
     private static boolean lastPickupAbsorption;
     private static boolean lastInventoryCleanup;
+    private static boolean lastCreativeSupply;
 
     private HandbagNetwork() {
     }
@@ -92,7 +93,8 @@ public final class HandbagNetwork {
 
         INSTANCE.sendTo(new PacketHandbagIntegrationsSync(HandbagIntegration.getEnabledMask(),
             HandbagServerConfig.isFrameCleanupEnabled(), HandbagServerConfig.isPickupAbsorptionEnabled(),
-            HandbagServerConfig.isInventoryCleanupEnabled()), (EntityPlayerMP) event.player);
+            HandbagServerConfig.isInventoryCleanupEnabled(), HandbagServerConfig.isCreativeSupplyEnabled()),
+            (EntityPlayerMP) event.player);
         INSTANCE.sendTo(new PacketHandbagRecipesSync(FutureMcRecipeCache.getSnapshot()),
             (EntityPlayerMP) event.player);
     }
@@ -119,14 +121,17 @@ public final class HandbagNetwork {
         boolean cleanupFrames = HandbagServerConfig.isFrameCleanupEnabled();
         boolean pickupAbsorption = HandbagServerConfig.isPickupAbsorptionEnabled();
         boolean inventoryCleanup = HandbagServerConfig.isInventoryCleanupEnabled();
+        boolean creativeSupply = HandbagServerConfig.isCreativeSupplyEnabled();
         if (enabledIntegrations != lastEnabledIntegrations || cleanupFrames != lastCleanupFrames
-                || pickupAbsorption != lastPickupAbsorption || inventoryCleanup != lastInventoryCleanup) {
+                || pickupAbsorption != lastPickupAbsorption || inventoryCleanup != lastInventoryCleanup
+                || creativeSupply != lastCreativeSupply) {
             lastEnabledIntegrations = enabledIntegrations;
             lastCleanupFrames = cleanupFrames;
             lastPickupAbsorption = pickupAbsorption;
             lastInventoryCleanup = inventoryCleanup;
+            lastCreativeSupply = creativeSupply;
             INSTANCE.sendToAll(new PacketHandbagIntegrationsSync(
-                enabledIntegrations, cleanupFrames, pickupAbsorption, inventoryCleanup));
+                enabledIntegrations, cleanupFrames, pickupAbsorption, inventoryCleanup, creativeSupply));
         }
 
         if (FutureMcRecipeCache.hasUpdates()) {

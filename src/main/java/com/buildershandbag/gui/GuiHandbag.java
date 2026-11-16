@@ -42,6 +42,7 @@ import com.buildershandbag.network.PacketCycleHandbagMode;
 import com.buildershandbag.network.PacketMoveHandbagConfiguration;
 import com.buildershandbag.network.PacketRemoveHandbagConfiguration;
 import com.buildershandbag.storage.HandbagConfiguration;
+import com.buildershandbag.storage.HandbagCreative;
 import com.buildershandbag.storage.HandbagStorage;
 
 
@@ -291,6 +292,9 @@ public class GuiHandbag extends GuiContainer {
             int y = CONFIGURATION_Y + index / CONFIGURATION_COLUMNS * SLOT_SIZE;
             String count = configuration.getMaterialCount() > 0 ? configuration.getMaterialAmount().toString() : "";
             boolean available = configuration.isAvailable();
+            if (available && HandbagCreative.hasFreeSupply(mc.player)) {
+                count = I18n.format("gui.buildershandbag.configuration.unlimited_short");
+            }
 
             if (!available) {
                 Gui.drawRect(x + 1, y + 1, x + SLOT_SIZE - 1, y + SLOT_SIZE - 1, 0x66FF3333);
@@ -570,6 +574,9 @@ public class GuiHandbag extends GuiContainer {
             "gui.buildershandbag.configuration.stored",
             configuration.getMaterialAmount(),
             material.isEmpty() ? configuration.getMaterialData().getString("id") : material.getDisplayName()));
+        if (available && HandbagCreative.hasFreeSupply(player)) {
+            lines.add(I18n.format("gui.buildershandbag.configuration.creative_supply"));
+        }
 
         // TODO: move hasFractionalCost() into the integration itself
         if (available && (configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT

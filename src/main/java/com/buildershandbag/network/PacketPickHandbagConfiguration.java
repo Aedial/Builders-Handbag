@@ -17,6 +17,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 import com.buildershandbag.integration.HandbagBlockPicker;
+import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.storage.HandbagConfiguration;
 import com.buildershandbag.storage.HandbagOutputs;
 import com.buildershandbag.storage.HandbagStorage;
@@ -91,6 +92,8 @@ public class PacketPickHandbagConfiguration implements IMessage {
             for (int index = 0; index < configurations.size(); index++) {
                 HandbagConfiguration existing = configurations.get(index);
                 if (!existing.isAvailable() || !HandbagOutputs.matches(existing, output)) continue;
+                if (picked.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT
+                        && !ItemStack.areItemStackTagsEqual(existing.getResult(), output)) continue;
 
                 // TODO: Should we report that the configuration already exists?
                 //       Instead of silently selecting the existing configuration.

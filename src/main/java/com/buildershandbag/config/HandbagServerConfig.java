@@ -40,6 +40,7 @@ public final class HandbagServerConfig {
     private static boolean clientCleanupFrames = true;
     private static boolean clientPickupAbsorption = true;
     private static boolean clientInventoryCleanup = true;
+    private static boolean clientCreativeSupply = true;
 
     private HandbagServerConfig() {
     }
@@ -59,11 +60,18 @@ public final class HandbagServerConfig {
             ? behavior.enableInventoryCleanup : clientInventoryCleanup;
     }
 
+    public static boolean isCreativeSupplyEnabled() {
+        return FMLCommonHandler.instance().getEffectiveSide().isServer()
+            ? behavior.enableCreativeSupply : clientCreativeSupply;
+    }
+
     @SideOnly(Side.CLIENT)
-    public static void setClientBehavior(boolean cleanupFrames, boolean pickupAbsorption, boolean inventoryCleanup) {
+    public static void setClientBehavior(boolean cleanupFrames, boolean pickupAbsorption, boolean inventoryCleanup,
+            boolean creativeSupply) {
         clientCleanupFrames = cleanupFrames;
         clientPickupAbsorption = pickupAbsorption;
         clientInventoryCleanup = inventoryCleanup;
+        clientCreativeSupply = creativeSupply;
     }
 
     public static final class Integrations {
@@ -121,6 +129,10 @@ public final class HandbagServerConfig {
     }
 
     public static final class Behavior {
+
+        @Config.Comment("Provide unlimited configured blocks and void matching items in creative mode")
+        @Config.LangKey(BEHAVIOR_PREFIX + ".creative_supply")
+        public boolean enableCreativeSupply = true;
 
         @Config.Comment("Absorb configured materials and exact configured blocks when the player picks them up")
         @Config.LangKey(BEHAVIOR_PREFIX + ".pickup_absorption")
