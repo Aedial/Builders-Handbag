@@ -54,6 +54,40 @@ public final class HandbagStorage {
         root.setString(NBT_MODE, mode.getKey());
     }
 
+    public static boolean hasConfigurations(ItemStack handbag) {
+        NBTTagCompound root = getRoot(handbag, false);
+        return root != null && !root.getTagList(NBT_CONFIGURATIONS, Constants.NBT.TAG_COMPOUND).isEmpty();
+    }
+
+    /**
+     * Creates a copy of the target with the source's configurations and empty material balances.
+     * TODO: We may consider copy into non-empty targets as well. It would require merging configurations
+     *       and deciding how we handle handbags with no space left.
+     */
+    public static ItemStack copyConfigurations(ItemStack source, ItemStack target) {
+        if (!hasConfigurations(source) || target.isEmpty() || hasConfigurations(target)) return ItemStack.EMPTY;
+
+        ItemStack result = target.copy();
+        result.setCount(1);
+
+        NBTTagCompound sourceRoot = getRoot(source, false);
+        NBTTagList configurations = sourceRoot.getTagList(NBT_CONFIGURATIONS, Constants.NBT.TAG_COMPOUND).copy();
+        for (int index = 0; index < configurations.tagCount(); index++) {
+            NBTTagCompound configuration = configurations.getCompoundTagAt(index);
+            configuration.setInteger(NBT_MATERIAL_COUNT, 0);
+            configuration.removeTag(NBT_MATERIAL_REMAINDER);
+            configuration.removeTag(NBT_MATERIAL_DENOMINATOR);
+        }
+        NBTTagCompound resultRoot = getRoot(result, true);
+        resultRoot.setTag(NBT_CONFIGURATIONS, configurations);
+
+        int selected = getSavedSelected(source);
+        resultRoot.setInteger(NBT_SELECTED, selected >= 0 && selected < configurations.tagCount() ? selected : -1);
+        HandbagMatchCache.invalidate(result);
+
+        return result;
+    }
+
     public static List<HandbagConfiguration> getConfigurations(ItemStack handbag) {
         NBTTagCompound root = getRoot(handbag, false);
         if (root == null || !root.hasKey(NBT_CONFIGURATIONS, Constants.NBT.TAG_LIST)) return Collections.emptyList();

@@ -2,12 +2,19 @@
 
 A Minecraft 1.12.2 building tool for easily switching between up to 36 decoration configurations, in a similar way to a dank/null. Each configuration has an internal inventory, drawing from the player's inventory (including any bag) or a linked AE2 network when it runs out of materials.
 
+The handbag has 3 placement modes, controlled by the mode button in the GUI:
+- **Normal**: Places the currently selected configuration.
+- **Random**: Chooses a random configuration from the handbag upon placement.
+- **Sequential**: Cycles to the next configuration in the handbag after each successful placement.
+
+### Tools and Usage
 The Handbag can act as a supplier for Building Gadgets or Better Builders Wands, providing materials from its internal inventory. For that, it needs a mixin loader, like [MixinBooter](https://www.curseforge.com/minecraft/mc-mods/mixin-booter) / Cleanroom 0.6+.
 
-With the handbag in your main hand, middle-click (configurable keybind) a supported block to add its configuration.
+With the handbag in your main hand, middle-click (configurable keybind) a supported block to add it as a configuration. The handbag will also show a ghost of the block's placement preview, when in hand (except in Random mode).
 
-The handbag will show a ghost of the block's placement preview, when in hand.
+Craft a configured handbag together with an unconfigured handbag to copy its configurations and their order (including currently invalid ones). Only the configurations are copied, everything else remains unchanged.
 
+### Clean-up
 The handbag will automatically re-absorb matching configured materials and their underlying block from dropped items, as well as periodically scan the player's inventory to reabsorb configured materials into its storage (but not their underlying block). The re-absorption process will skip configurations that are full or invalid, but the periodic scan may absorb them later, when space becomes available.
 
 ## Optional integrations

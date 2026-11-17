@@ -18,13 +18,15 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 ### Added
 - Retain ArchitectureCraft-Renovated texture orientation when picking and placing blocks.
 - Add a config option for unlimited configured blocks in creative mode.
-- Show a placement ghost with rotation and connections while holding the Handbag in Normal mode.
+- Show a placement ghost with rotation and connections while holding the Handbag in Normal or Sequential mode.
 - Show an error log on opening the GUI when no configurations are available.
 - Allow the Handbag to refill from sub-inventories, like a bag or /dank/null, with Baubles support.
 - Allow the Handbag to be used as a supplier for Building Gadgets or Better Builders Wands. These specific integrations rely on mixins and can be disable in config.
 - Add in-world configuration picking on keybind (default: middle-click).
 - Add material re-absorption from dropped items. The handbag will match picked items + do a periodic inventory scan every 30s to reabsorb configured materials into its storage.
 - Add "Random" mode, which chooses a random configuration from the handbag upon placement. The "Normal" mode will continue to use the currently selected configuration.
+- Add "Sequential" mode, which cycles to the next configuration in the handbag after each successful placement.
+- Add a crafting recipe to copy configurations into an unconfigured handbag.
 - Add the FutureMC integration, which allows the handbag to store and place blocks corresponding to the FutureMC stonecutter.
 - Add a config to automatically migrate FutureMC recipes, when their ratio are changed. If enabled, the remainder will be rounded down to the nearest multiple of the new ratio. If not, the configuration will need to be manually removed and re-added to the handbag.
 

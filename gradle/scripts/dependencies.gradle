@@ -45,6 +45,9 @@ dependencies {
     // ---- Required dependencies ----
 
 
+    // ---- Optional: JEI ----
+    devOnlyNonPublishable rfg.deobf("curse.maven:jei-238222:3043174")
+
     // ---- Optional: Chisel ----
     devOnlyNonPublishable rfg.deobf("curse.maven:chisel-235279:2915375")
 

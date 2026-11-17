@@ -23,7 +23,7 @@ public final class HandbagModeButton extends GuiButton {
         "textures/guis/modes.png");
     private static final int BUTTON_SIZE = 12;
     private static final int TEXTURE_CELL_SIZE = 24;
-    private static final int TEXTURE_WIDTH = 64;
+    private static final int TEXTURE_WIDTH = 128;
     private static final int TEXTURE_HEIGHT = 64;
 
     private final Supplier<HandbagMode> mode;

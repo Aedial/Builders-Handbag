@@ -10,7 +10,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  */
 public enum HandbagMode {
     NORMAL("normal", 0),
-    RANDOM("random", 1);
+    RANDOM("random", 1),
+    SEQUENTIAL("sequential", 2);
 
     private final String key;
     private final int textureColumn;

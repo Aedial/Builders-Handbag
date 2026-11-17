@@ -86,6 +86,10 @@ public final class HandbagClientConfig {
         @Config.RangeInt(min = 0, max = 256)
         @Config.LangKey(RENDERING_PREFIX + ".content_overlay_y_offset")
         public int contentOverlayYOffset = 5;
+
+        @Config.Comment("Whether to render the placement preview outline")
+        @Config.LangKey(RENDERING_PREFIX + ".render_placement_preview_outline")
+        public boolean renderPlacementPreviewOutline = true;
     }
 
     @Mod.EventBusSubscriber(modid = Tags.MODID)

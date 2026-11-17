@@ -34,6 +34,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import org.lwjgl.opengl.GL11;
 
 import com.buildershandbag.Tags;
+import com.buildershandbag.config.HandbagClientConfig;
 import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.item.HandbagMode;
 import com.buildershandbag.item.ItemHandbag;
@@ -187,7 +188,9 @@ public final class HandbagPlacementPreview {
             }
 
             applyTransparency(buffer);
-            outline = PlacementPreviewOutline.capture(buffer);
+            if (HandbagClientConfig.rendering.renderPlacementPreviewOutline) {
+                outline = PlacementPreviewOutline.capture(buffer);
+            }
         } finally {
             try {
                 tessellator.draw();

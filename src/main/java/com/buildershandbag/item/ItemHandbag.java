@@ -127,10 +127,13 @@ public class ItemHandbag extends ItemBlock {
 
         ItemStack handbag = player.getHeldItem(hand);
         if (HandbagStorage.validateRecipes(handbag)) player.inventory.markDirty();
+        HandbagMode mode = HandbagStorage.getMode(handbag);
         boolean selectionChanged = false;
-        if (HandbagStorage.getMode(handbag) == HandbagMode.RANDOM) {
+        if (mode == HandbagMode.RANDOM) {
             int previous = HandbagStorage.getSelected(handbag);
             selectionChanged = HandbagStorage.selectRandom(handbag, world.rand) != previous;
+        } else if (mode == HandbagMode.SEQUENTIAL && HandbagStorage.getSelected(handbag) < 0) {
+            selectionChanged = HandbagStorage.cycleSelected(handbag, true) >= 0;
         }
 
         EnumActionResult placement = placeConfiguration(player, world, pos, hand, side, hitX, hitY, hitZ);
@@ -197,6 +200,7 @@ public class ItemHandbag extends ItemBlock {
         if (placement != EnumActionResult.SUCCESS) return placement;
 
         if (!HandbagCreative.hasFreeSupply(player)) HandbagStorage.consumeMaterial(handbag, selected);
+        if (HandbagStorage.getMode(handbag) == HandbagMode.SEQUENTIAL) HandbagStorage.cycleSelected(handbag, true);
         player.inventory.markDirty();
 
         if (player instanceof EntityPlayerMP) syncToClient((EntityPlayerMP) player, hand);
@@ -322,23 +326,17 @@ public class ItemHandbag extends ItemBlock {
         int selected = HandbagStorage.getSelected(stack);
         if (selected >= 0) {
             HandbagConfiguration configuration = configurations.get(selected);
-            String selectedSuffix = mode == HandbagMode.RANDOM ? "selected_random" : "selected";
-            boolean free = HandbagCreative.hasFreeSupply(Minecraft.getMinecraft().player);
-            if (free) selectedSuffix += "_creative";
-
-            String balance = free
+            String balance = HandbagCreative.hasFreeSupply(Minecraft.getMinecraft().player)
                 ? I18n.format("gui.buildershandbag.configuration.unlimited")
                 : configuration.getMaterialAmount().toString();
             tooltip.add(I18n.format(
-                "tooltip.buildershandbag." + selectedSuffix,
-                configuration.getResult().getDisplayName(),
-                balance));
+                "tooltip.buildershandbag.selected_" + mode.getKey(),
+                configuration.getResult().getDisplayName(), balance));
         } else if (configurations.stream().noneMatch(HandbagConfiguration::isAvailable)) {
             tooltip.add(I18n.format("tooltip.buildershandbag.no_available_configurations"));
         } else {
             // may not have selected on first configuration
-            String selectionKeySuffix = mode == HandbagMode.RANDOM ? "random_selection" : "no_selection";
-            tooltip.add(I18n.format("tooltip.buildershandbag." + selectionKeySuffix));
+            tooltip.add(I18n.format("tooltip.buildershandbag.no_selection_" + mode.getKey()));
         }
 
         tooltip.add("");
