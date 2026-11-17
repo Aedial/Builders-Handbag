@@ -31,6 +31,8 @@ import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
+import org.lwjgl.opengl.GL11;
+
 import com.buildershandbag.Tags;
 import com.buildershandbag.integration.HandbagIntegration;
 import com.buildershandbag.item.HandbagMode;
@@ -165,7 +167,8 @@ public final class HandbagPlacementPreview {
         GlStateManager.depthMask(false);
         GlStateManager.enablePolygonOffset();
         GlStateManager.doPolygonOffset(POLYGON_OFFSET, POLYGON_OFFSET);
-        buffer.begin(7, DefaultVertexFormats.BLOCK);
+        PlacementPreviewOutline outline = null;
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
         try {
             BlockRendererDispatcher dispatcher = minecraft.getBlockRendererDispatcher();
             if (configuration.getIntegration() == HandbagIntegration.ARCHITECTURECRAFT
@@ -184,16 +187,21 @@ public final class HandbagPlacementPreview {
             }
 
             applyTransparency(buffer);
+            outline = PlacementPreviewOutline.capture(buffer);
         } finally {
-            tessellator.draw();
-            ForgeHooksClient.setRenderLayer(previousLayer);
-            GlStateManager.doPolygonOffset(0.0F, 0.0F);
-            GlStateManager.disablePolygonOffset();
-            GlStateManager.depthMask(true);
-            GlStateManager.disableAlpha();
-            GlStateManager.disableBlend();
-            GlStateManager.popMatrix();
-            minecraft.entityRenderer.disableLightmap();
+            try {
+                tessellator.draw();
+                if (outline != null) outline.render(tessellator);
+            } finally {
+                ForgeHooksClient.setRenderLayer(previousLayer);
+                GlStateManager.doPolygonOffset(0.0F, 0.0F);
+                GlStateManager.disablePolygonOffset();
+                GlStateManager.depthMask(true);
+                GlStateManager.disableAlpha();
+                GlStateManager.disableBlend();
+                GlStateManager.popMatrix();
+                minecraft.entityRenderer.disableLightmap();
+            }
         }
     }
 

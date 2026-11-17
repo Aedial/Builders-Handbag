@@ -155,7 +155,7 @@ public final class BlockcrafteryGadgetPreview {
             EnumFacing face = quad.getFace() != null ? quad.getFace() : fallback;
             if (face == null) continue;
 
-            buffer.begin(7, DefaultVertexFormats.ITEM);
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.ITEM);
             buffer.addVertexData(quad.getVertexData());
             buffer.putColorRGB_F4(brightness, brightness, brightness);
             Vec3i normal = face.getDirectionVec();
